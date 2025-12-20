@@ -55,7 +55,7 @@ jobs:
             export PATH=$PATH:/usr/bin:/usr/local/bin
 
             echo "📁 Navigating to Backend folder..."
-            cd /application/Staff_Secure_Backend
+            cd ~/application/Staff_Secure_Backend
 
             echo "📥 Pulling latest code..."
             git pull origin main
