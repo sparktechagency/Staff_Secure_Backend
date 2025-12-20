@@ -11,27 +11,30 @@ jobs:
 
     steps:
       # 1️⃣ Checkout repo
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2️⃣ Check secrets safely
-      - name: Check Secrets
+      # 2️⃣ Safe Secret Check for Deployment
+      - name: Validate Secrets
         run: |
-          export SSH_PRIVATE_KEY="${{ secrets.SSH_PRIVATE_KEY }}"
-          export DROPLET_IP="${{ secrets.DROPLET_IP }}"
+          # Export secrets as shell variables
+          export SSH_KEY="${{ secrets.SSH_PRIVATE_KEY }}"
+          export VPS_IP="${{ secrets.DROPLET_IP }}"
 
-          if [ -z "$SSH_PRIVATE_KEY" ]; then
-            echo "❌ SSH_PRIVATE_KEY is empty!"
+          # Check if SSH key exists
+          if [ -z "$SSH_KEY" ]; then
+            echo "❌ SSH_PRIVATE_KEY is missing. Aborting deploy."
             exit 1
           else
-            echo "✅ SSH_PRIVATE_KEY exists"
+            echo "✅ SSH_PRIVATE_KEY loaded (masked for safety)"
           fi
 
-          if [ -z "$DROPLET_IP" ]; then
-            echo "❌ DROPLET_IP is empty!"
+          # Check if VPS IP exists
+          if [ -z "$VPS_IP" ]; then
+            echo "❌ DROPLET_IP is missing. Aborting deploy."
             exit 1
           else
-            echo "✅ DROPLET_IP exists"
+            echo "✅ DROPLET_IP loaded: $VPS_IP"
           fi
 
       # 3️⃣ Setup SSH agent
@@ -56,7 +59,7 @@ jobs:
             echo "📦 Installing dependencies..."
             npm install
 
-            echo "🔍 Checking if PM2 process exists..."
+            echo "🔍 Checking PM2 process..."
             if pm2 describe Backend > /dev/null 2>&1; then
                 echo "🔄 PM2 process exists → restarting..."
                 pm2 restart Backend
@@ -68,4 +71,4 @@ jobs:
             echo "💾 Saving PM2 process list..."
             pm2 save
 
-            echo "✅ Deploy finished successfully!"
+            echo "✅ Deployment finished successfully!"
