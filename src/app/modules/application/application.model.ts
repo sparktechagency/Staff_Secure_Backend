@@ -1,62 +1,70 @@
-import { model, Schema } from 'mongoose';
-import { IApplication } from './application.interface';
+import { model, Schema } from 'mongoose'
+import { IApplication } from './application.interface'
 
 const applicationSchema = new Schema<IApplication>(
   {
-    candidateId: { 
-        type: Schema.Types.ObjectId, 
-        ref: 'CandidateProfile', 
-        required: true 
+    candidateId: {
+      type: Schema.Types.ObjectId,
+      ref: 'CandidateProfile',
+      required: true,
     },
-    jobId: { 
-        type: Schema.Types.ObjectId, 
-        ref: 'Job', 
-        required: true 
+    jobId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Job',
+      required: true,
     },
-    jobProviderOwnerId: { 
-        type: Schema.Types.ObjectId, 
-        ref: 'User', 
-        required: true 
+    jobProviderOwnerId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
     },
-    status: { 
-      type: String, 
-      enum: ['applied', 'forwarded', 'selected', 'rejected'], 
-      default: 'applied' 
+    status: {
+      type: String,
+      enum: ['applied', 'forwarded', 'selected', 'rejected'],
+      default: 'applied',
     },
-    adminNotes: { 
-        type: String, 
-        default: '' 
+    adminNotes: {
+      type: String,
+      default: '',
     },
-    aiScore: { 
-        type: Number, 
-        default: null 
+    aiScore: {
+      type: Number,
+      default: null,
     },
-    aiReason: { 
-        type: String, 
-        default: '' 
+    aiReason: {
+      type: String,
+      default: '',
     },
-    appliedAt: { 
-        type: Date, 
-        default: Date.now 
+    matchedSkills: {
+      type: [String],
+      default: [],
     },
-    forwardedAt: { 
-        type: Date, 
-        default: null 
+    aiMatchLevel: {
+      type: String,
+      default: 'unknown',
     },
-    selectedAt: { 
-        type: Date, 
-        default: null 
+    appliedAt: {
+      type: Date,
+      default: Date.now,
     },
-    rejectedAt: { 
-        type: Date, 
-        default: null 
+    forwardedAt: {
+      type: Date,
+      default: null,
     },
-    isDeleted: { 
-        type: Boolean, 
-        default: false 
+    selectedAt: {
+      type: Date,
+      default: null,
+    },
+    rejectedAt: {
+      type: Date,
+      default: null,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }
-);
+)
 
-export const Application = model<IApplication>('Application', applicationSchema);
+export const Application = model<IApplication>('Application', applicationSchema)

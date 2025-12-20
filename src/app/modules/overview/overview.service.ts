@@ -1,7 +1,11 @@
+import mongoose from "mongoose";
 import { Application } from "../application/application.model";
 import { Payment } from "../payment/payment.model";
 import { USER_ROLE } from "../user/user.constants";
 import { User } from "../user/user.model";
+import Job from "../job/job.model";
+import { Notification } from "../notifications/notifications.model";
+import AppError from "../../error/AppError";
 
 
 const adminOverview = async () => {
@@ -202,6 +206,21 @@ const getEarningsOverviewByYear = async (year: number) => {
   return result;
 };
 
+
+const getLatestNotificationsAndJobs = async (userId: string) => {
+
+
+  const notifications = await Notification.find({ receiverId: new mongoose.Types.ObjectId(userId) }).sort({ createdAt: -1 }).limit(8);
+
+  const jobs = await Job.find().sort({ createdAt: -1 }).populate('employerId', 'name companyName email').select('title createdAt status ').limit(6);
+
+  return {
+    notifications,
+    jobs,
+  };
+
+};
+
 const CvDispatchOverview = async () => {
   const now = new Date();
 
@@ -267,6 +286,121 @@ const placementOverview = async () => {
 };
 
 
+// Employee overview
+const getEmployeeOverview = async (userId: string) => {
+  const employerId = new mongoose.Types.ObjectId(userId);
+  const now = new Date();
+
+  /* 1️⃣ User + Subscription */
+  const user = await User.findById(userId)
+    .populate('mySubscriptionsId')
+    .lean();
+
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
+  const subscription = user.mySubscriptionsId as any | null;
+
+  /* 2️⃣ Job statistics (single aggregation) */
+  const [jobStats] = await Job.aggregate([
+    {
+      $match: {
+        employerId,
+        lastApplyDate: { $gte: now },
+        isDeleted: false,
+      },
+    },
+    {
+      $count: 'totalActiveRequirements',
+    },
+  ]);
+
+  /* 3️⃣ Application statistics (ONE QUERY using $facet) */
+  const [applicationStats] = await Application.aggregate([
+    {
+      $match: {
+        jobProviderOwnerId: employerId,
+        isDeleted: false,
+      },
+    },
+    {
+      $facet: {
+        totalCvReceived: [
+          { $match: { forwardedAt: { $ne: null } } },
+          { $count: 'count' },
+        ],
+        totalNewCv: [
+          { $match: { status: 'forwarded' } },
+          { $count: 'count' },
+        ],
+        totalPlacement: [
+          { $match: { status: 'selected' } },
+          { $count: 'count' },
+        ],
+        usedCV: subscription?.buyTime
+          ? [
+              {
+                $match: {
+                  forwardedAt: {
+                    $ne: null,
+                    $gte: subscription.buyTime,
+                  },
+                },
+              },
+              { $count: 'count' },
+            ]
+          : [],
+      },
+    },
+  ]);
+
+  /* 4️⃣ Notifications */
+  const notifications = await Notification.find({
+    receiverId: employerId,
+  })
+    .sort({ createdAt: -1 })
+    .limit(8)
+    .lean();
+
+  /* 5️⃣ CV limits */
+  const CV_LIMIT: Record<string, number | null> = {
+    Bronze: 3,
+    Platinum: 10,
+    Diamond: null,
+  };
+
+  const limit = subscription
+    ? CV_LIMIT[subscription.type] ?? 0
+    : 0;
+
+  return {
+    totalActiveRequirements:
+      jobStats?.totalActiveRequirements ?? 0,
+
+    totalCvReceived:
+      applicationStats?.totalCvReceived?.[0]?.count ?? 0,
+
+    totalNewCv:
+      applicationStats?.totalNewCv?.[0]?.count ?? 0,
+
+    totalPlacement:
+      applicationStats?.totalPlacement?.[0]?.count ?? 0,
+
+    mySubscription: subscription
+      ? {
+          ...subscription,
+          limit,
+          usedCV:
+            applicationStats?.usedCV?.[0]?.count ?? 0,
+        }
+      : null,
+
+    notifications,
+  };
+};
+
+
 
 export const OverviewService = {
 
@@ -275,4 +409,6 @@ export const OverviewService = {
   placementOverview,
   getUserOverviewByYear,
   getEarningsOverviewByYear,
+  getLatestNotificationsAndJobs,
+  getEmployeeOverview
 };

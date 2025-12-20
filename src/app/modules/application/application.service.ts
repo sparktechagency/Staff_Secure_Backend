@@ -6,7 +6,9 @@ import { Application } from './application.model';
 import { IApplication } from './application.interface';
 import QueryBuilder from '../../builder/QueryBuilder';
 import Job from '../job/job.model';
-import { generateAiScoreForApplication } from './application.utils';
+import { generateAiScoreForApplication, generateAiScoresForJob } from './application.utils';
+import { emitNotification } from '../../../socketIo';
+import { getAdminId } from '../../DB/adminStrore';
 
 const createApplication = async (payload: IApplication) => {
 
@@ -35,8 +37,11 @@ const createApplication = async (payload: IApplication) => {
     status: 'applied',
   }) as any;
 
+  if(!application) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create application');
+  }
   // 🔥 fire-and-forget AI (DON’T await)
-  generateAiScoreForApplication(application._id.toString())
+  generateAiScoresForJob(application.jobId.toString())
     .catch(err => console.error("AI scoring failed:", err));
 
   return application;
@@ -55,7 +60,7 @@ const sendCv = async (
   // 2️⃣ Find application with job populated
   const application = await Application.findById(applicationId).populate<{
     jobId: typeof Job;
-  }>('jobId', 'status');
+  }>('jobId', 'status title jobProviderOwnerId');
 
   if (!application) {
     throw new AppError(httpStatus.NOT_FOUND, 'Application not found');
@@ -80,15 +85,141 @@ const sendCv = async (
   await application.save();
 
   // 5️⃣ Update job status if New
-  if (application.jobId && (application.jobId as any).status === 'New') {
-    (application.jobId as any).status = 'Cvs Sent';
-    await (application.jobId as any).save();
+  const job = application.jobId as any;
+
+  if (job?.status === 'New') {
+    job.status = 'Cvs Sent';
+    await job.save();
+  }
+
+
+  
+    // 6️⃣ Send notification to employer
+  const employerId = job?.jobProviderOwnerId;
+
+  if (employerId) {
+    await emitNotification({
+      senderId: getAdminId(), // Admin/system sender
+      receiverId: employerId,
+      message: `A new CV has been received for your job posting (${job?.title})`,
+    });
   }
 
   // 6️⃣ Return updated application
   return application;
+
 };
 
+
+const sendMultipleCvs = async (
+  applications: {
+    applicationId: string;
+    adminNotes?: string;
+  }[]
+) => {
+  // 1️⃣ Validate input
+  if (!Array.isArray(applications) || applications.length === 0) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      'applications must be a non-empty array'
+    );
+  }
+
+  // 2️⃣ Validate ObjectIds
+  const applicationIds = applications.map(app => app.applicationId);
+
+  const invalidIds = applicationIds.filter(
+    id => !mongoose.Types.ObjectId.isValid(id)
+  );
+
+  if (invalidIds.length > 0) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      `Invalid application IDs: ${invalidIds.join(', ')}`
+    );
+  }
+
+  // 3️⃣ Fetch applications with job populated
+  const dbApplications = await Application.find({
+    _id: { $in: applicationIds },
+  }).populate<{
+    jobId: typeof Job;
+  }>('jobId', 'status title jobProviderOwnerId');
+
+  if (dbApplications.length === 0) {
+    throw new AppError(httpStatus.NOT_FOUND, 'No applications found');
+  }
+
+  // 4️⃣ Prevent already-forwarded CVs
+  const alreadyForwarded = dbApplications.filter(app => app.forwardedAt);
+
+  if (alreadyForwarded.length > 0) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      `${alreadyForwarded.length} CV(s) have already been forwarded`
+    );
+  }
+
+  // 5️⃣ Build bulk updates (different notes per application)
+  const now = new Date();
+
+  const bulkOps = dbApplications.map(app => {
+    const payload = applications.find(
+      a => a.applicationId === ( app as any)._id.toString()
+    );
+
+    return {
+      updateOne: {
+        filter: { _id: app._id },
+        update: {
+          $set: {
+            status: 'forwarded',
+            forwardedAt: now,
+            ...(payload?.adminNotes && { adminNotes: payload.adminNotes }),
+          },
+        },
+      },
+    };
+  });
+
+  await Application.bulkWrite(bulkOps);
+
+  // 6️⃣ Group by job
+  const jobMap = new Map<string, any>();
+
+  dbApplications.forEach(app => {
+    const job = app.jobId as any;
+    if (job?._id) {
+      jobMap.set(job._id.toString(), job);
+    }
+  });
+
+  // 7️⃣ Update job status + notify employer (once per job)
+  for (const job of jobMap.values()) {
+    if (job.status === 'New') {
+      job.status = 'Cvs Sent';
+      await job.save();
+    }
+
+    if (job.jobProviderOwnerId) {
+      await emitNotification({
+        senderId: getAdminId(),
+        receiverId: job.jobProviderOwnerId,
+        message: `New CVs have been received for your job posting (${job.title})`,
+      });
+    }
+  }
+
+  // 8️⃣ Return updated applications
+  const updatedApplications = await Application.find({
+    _id: { $in: applicationIds },
+  });
+
+  return {
+    totalSent: updatedApplications.length,
+    applications: updatedApplications,
+  };
+};
 
 const markApplicationSelected = async (
   userId: string,
@@ -99,13 +230,15 @@ const markApplicationSelected = async (
     throw new AppError(httpStatus.BAD_REQUEST, 'Invalid application ID');
   }
 
-  const application = await Application.findById(applicationId);
+  const application = await Application.findById(applicationId).populate('candidateId jobProviderOwnerId jobId');
 
   if (!application) {
     throw new AppError(httpStatus.NOT_FOUND, 'Application not found');
   }
 
-  if(application.jobProviderOwnerId.toString() !== userId) {
+  const jobProvider = application.jobProviderOwnerId as any;
+
+  if(jobProvider._id.toString() !== userId) {
     throw new AppError(httpStatus.BAD_REQUEST, 'You are not authorized to select this application');
   }
 
@@ -119,7 +252,33 @@ const markApplicationSelected = async (
 
   await application.save();
 
+  const candidate = application.candidateId as any;
+
+  const job = application.jobId as any;
+
+  const adminId = getAdminId();
+
+  // Send notifications in parallel
+  await Promise.all([
+    // Admin notification
+    emitNotification({
+      senderId: new mongoose.Types.ObjectId(userId),
+      receiverId: adminId,
+      message: `New placement confirmed: ${candidate.name } at ${jobProvider.companyName}`,
+    }),
+
+    // Candidate notification
+    emitNotification({
+      senderId: new mongoose.Types.ObjectId(userId),
+      receiverId: candidate.userId,
+      message: `🎉 Congratulations ${candidate.name}! You have been selected for a ${job.title} at ${jobProvider.companyName}. Our team will contact you soon with the next steps.`,
+    }),
+
+  ]);
+  
+
   return application;
+
 };
 
 const markApplicationRejected = async (
@@ -253,6 +412,7 @@ const getTopAiSuggestedCvsForJob = async (jobId: string) => {
     throw new Error("Invalid jobId");
   }
 
+  console.log({jobId})
   // Filter applications that have an AI score
   const baseFilter = {
     jobId: new mongoose.Types.ObjectId(jobId),
@@ -262,10 +422,10 @@ const getTopAiSuggestedCvsForJob = async (jobId: string) => {
 
   // Fetch top 3 applications sorted by AI score descending
   const topApplications = await Application.find(baseFilter)
-    .select("status appliedAt aiScore aiReason candidateId jobId jobProviderOwnerId")
+    .select("status appliedAt aiScore aiReason matchedSkills aiMatchLevel candidateId jobId jobProviderOwnerId adminNotes ")
     .populate({
       path: "candidateId",
-      select: "name email cv designation skills yearsOfExperience bio",
+      select: "name email cv designation skills yearsOfExperience bio location availability",
     })
     .populate({
       path: "jobId",
@@ -411,6 +571,7 @@ const deleteApplication = async (id: string) => {
 export const ApplicationService = {
   createApplication,
   sendCv,
+  sendMultipleCvs,
   markApplicationSelected,
   markApplicationRejected,
   getAllApplications,

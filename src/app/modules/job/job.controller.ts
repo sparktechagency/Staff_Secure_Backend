@@ -16,7 +16,7 @@ const createJob = catchAsync(async (req, res) => {
     success: true,
     statusCode: httpStatus.CREATED,
     message: 'Job created successfully',
-    data: "result",
+    data: result,
   });
 });
 

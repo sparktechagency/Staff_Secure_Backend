@@ -10,6 +10,8 @@ export interface IApplication extends Document {
   adminNotes: string;
   aiScore?: number;
   aiReason?: string;
+  matchedSkills?: string[];
+  aiMatchLevel?: string;
   appliedAt: Date;
   forwardedAt?: Date;
   selectedAt?: Date;

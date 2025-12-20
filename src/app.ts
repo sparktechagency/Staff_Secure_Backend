@@ -41,18 +41,20 @@ app.use(logHttpRequests);
 // 👮 Rate Limiter Middleware (apply to all requests)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000000, // limit each IP to 100 requests per 15 min
+  max: 100, // limit each IP to 10000 requests per 15 min
   message: "🚫 Too many requests from this IP. Please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
 });
+
 app.use(limiter); // 👈 Add before your routes
+
 
 /* ---------- Routes ---------- */
 app.use('/api/v1', router);
 
 /* Dashboard (HTML) */
-app.get('/', async (_req: Request, res: Response) => {
+app.get('/',   async (_req: Request, res: Response) => {
   const htmlContent = await serverHomePage();
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.send(htmlContent);

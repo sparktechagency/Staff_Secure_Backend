@@ -39,8 +39,6 @@ class QueryBuilder<T> {
       (key) => !['search', 'searchTerm', 'sort', 'page', 'limit', 'fields'].includes(key)
     );
 
-    console.log("searchableFields", searchableFields);
-    console.log('specificFieldsQuery', specificFieldsQuery);
 
     const filters: any[] = [];
 
@@ -56,15 +54,12 @@ class QueryBuilder<T> {
     // Add specific field filters
     if (specificFieldsQuery.length) {
       specificFieldsQuery.forEach((key) => {
-        console.log('key', key);
-        console.log('this.query[key]', this.query[key]);
 
         const value = String(this.query[key]); // convert to string
         filters.push({ [key]: { $regex: value, $options: 'i' } });
       });
     }
 
-    console.dir(filters, {depth: null, colors: true});
     // console.log('filters', filters);
     // Apply combined filters
     if (filters.length) {
@@ -93,8 +88,6 @@ class QueryBuilder<T> {
     const excludeFields = ['search','searchTerm', 'sort', 'limit', 'page', 'fields'];
 
     excludeFields.forEach((el) => delete queryObj[el]);
-
-    console.log({queryObj});
 
     this.modelQuery = this.modelQuery.find(queryObj as FilterQuery<T>);
 

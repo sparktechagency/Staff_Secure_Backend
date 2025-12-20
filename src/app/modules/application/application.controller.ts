@@ -47,6 +47,19 @@ const sentCv = catchAsync(async (req, res) => {
 
 });
 
+const sendMultipleCvs = catchAsync(async (req, res) => {
+  const { applications } = req.body;
+
+  const result = await ApplicationService.sendMultipleCvs(applications);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'CVs sent successfully',
+    data: result,
+  });
+});
+
 const markApplicationSelected = catchAsync(async (req, res) => {
 
   const {userId} = req.user;
@@ -112,6 +125,19 @@ const getAllApplicantCvsOfSpecificJob = catchAsync(async (req, res) => {
   });
 })
 
+const getTopAiSuggestedCvsForJob = catchAsync(async (req, res) => {
+
+  const result = await ApplicationService.getTopAiSuggestedCvsForJob(req.params.jobId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: 'Application cv of specific job fetched successfully',
+    data: result,
+  });
+
+})
+
 const getAllCvDispatch = catchAsync(async (req, res) => {
 
   const result = await ApplicationService.getAllCvDispatch(req.query);
@@ -172,11 +198,13 @@ const deleteApplication = catchAsync(async (req, res) => {
 export const ApplicationController = {
   createApplication,
   sentCv,
+  sendMultipleCvs,
   markApplicationSelected,
   markApplicationRejected,
   getAllApplications,
   getAllRecivedCvsOfSpecificJobProvider,
   getAllApplicantCvsOfSpecificJob,
+  getTopAiSuggestedCvsForJob,
   getAllCvDispatch,
   getAllPlacement,
   getApplicationById,

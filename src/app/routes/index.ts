@@ -63,6 +63,10 @@ const moduleRoutes = [
   {
     path: "/subscription",
     route: mySubscriptionRoutes
+  },
+  {
+    path: "/notification",
+    route: notificationRoutes
   }
 
 

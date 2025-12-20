@@ -19,8 +19,14 @@ applicationRoutes
 
     .patch(
         "/send-cv/:applicationId",
-        // auth(USER_ROLE.EMPLOYER),
+        auth(USER_ROLE.ADMIN),
         ApplicationController.sentCv
+    )
+
+    .patch(
+        "/sent-multiple-cvs",
+        auth(USER_ROLE.ADMIN),
+        ApplicationController.sendMultipleCvs
     )
 
     .patch(
@@ -49,18 +55,25 @@ applicationRoutes
 
     .get(
         "/view-cvs/:jobId",
-        // auth(USER_ROLE.EMPLOYER),
+        auth(USER_ROLE.ADMIN),
         ApplicationController.getAllApplicantCvsOfSpecificJob
     )
 
     .get(
+        "/top-ai-suggested-cvs/:jobId",
+        auth(USER_ROLE.ADMIN),
+        ApplicationController.getTopAiSuggestedCvsForJob
+    )
+
+    .get(
         "/cv-dispatch",
-        // auth(USER_ROLE.EMPLOYER),
+        auth(USER_ROLE.ADMIN),
         ApplicationController.getAllCvDispatch
     )
 
     .get(
         "/placement-candidates",
+        auth(USER_ROLE.ADMIN),
         ApplicationController.getAllPlacement
     )
 

@@ -39,7 +39,6 @@ const auth = (...userRoles: string[]) => {
       throw new AppError(httpStatus.FORBIDDEN, 'Invalid or expired token');
     }
 
-    console.log({decodeData})
 
     const { role, userId } = decodeData;
 

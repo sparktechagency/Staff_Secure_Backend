@@ -30,6 +30,8 @@ const getAllNotifications = catchAsync(async (req, res) => {
   });
 });
 
+
+
 const markAsRead = catchAsync(async (req, res) => {
   const result = await NotificationService.markAsRead(req.params.id);
 

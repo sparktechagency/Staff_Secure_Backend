@@ -4,6 +4,7 @@ import httpStatus from 'http-status';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { TNotification } from './notifications.interface';
 import { Notification } from './notifications.model';
+import mongoose from 'mongoose';
 
 const createNotification = async (payload: TNotification) => {
   const notification = await Notification.create(payload);
@@ -11,7 +12,7 @@ const createNotification = async (payload: TNotification) => {
 };
 
 const getAllNotifications = async (userId: string, query: Record<string, any> = {}) => {
-  const baseFilter = { receiverId: userId };
+  const baseFilter = { receiverId: new mongoose.Types.ObjectId(userId) };
 
   const notificationQuery = new QueryBuilder(
     Notification.find(baseFilter).populate('senderId', 'fullName email'),
@@ -26,6 +27,7 @@ const getAllNotifications = async (userId: string, query: Record<string, any> = 
 
   return { meta, result };
 };
+
 
 const markAsRead = async (id: string) => {
   const notification = await Notification.findById(id);

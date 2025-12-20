@@ -23,6 +23,11 @@ notificationRoutes
       NotificationController.getAllNotifications
     )
 
+    // get my notifications for 
+
+
+
+
     // Mark notification as read
     .patch(
       '/:id/read',

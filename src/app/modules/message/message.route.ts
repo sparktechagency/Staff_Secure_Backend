@@ -24,7 +24,7 @@ messageRoutes
       ]),
     parseData(),
     messageController.fileUpload
-)
+  )
   
 
   .patch(

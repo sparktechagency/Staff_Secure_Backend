@@ -136,7 +136,7 @@ export const initSocketIO = async (server: HttpServer): Promise<void> => {
       socket.on(
         'send-message',
         async (
-          payload: { text: string; images: string[]; chatId: string },
+          payload: { text: string; images: string[]; chatId: string,from: string },
           callback
         ) => {
           try {
@@ -208,6 +208,15 @@ export const initSocketIO = async (server: HttpServer): Promise<void> => {
                 `message_received::${chatId}`,
                 messagePayload
               )
+            }
+
+            if(receiverSocketIds.length === 0){
+              emitNotification({
+              senderId: socket.user?._id as any,
+              receiverId: receivers[0] as any,
+              message: `New message from ${payload.from}`,
+              type: 'message',
+            })
             }
 
             // ✅ Reply callback
@@ -309,10 +318,12 @@ export const emitNotification = async ({
   senderId,
   receiverId,
   message,
+  type,
 }: {
   senderId: mongoose.Types.ObjectId
   receiverId: mongoose.Types.ObjectId
-  message: string
+  message: string,
+  type?: string
 }): Promise<void> => {
   if (!io) {
     throw new Error('Socket.IO is not initialized')
@@ -343,6 +354,7 @@ export const emitNotification = async ({
     senderId, // Ensure that userId is of type mongoose.Types.ObjectId
     receiverId, // Ensure that receiverId is of type mongoose.Types.ObjectId
     message,
+    type,
     isRead: false, // Set to false since the notification is unread initially
     timestamp: new Date(), // Timestamp of when the notification is created
   }

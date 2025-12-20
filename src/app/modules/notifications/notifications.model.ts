@@ -17,6 +17,11 @@ const notificationSchema = new Schema<TNotification>(
       type: String,
       required: true,
     },
+    type: {
+      type: String,
+      enum: ['message', 'other'],
+      default: 'other'
+    },
     isRead: {
       type: Boolean,
       default: false,

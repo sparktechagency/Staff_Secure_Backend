@@ -42,7 +42,7 @@ const completeSubscriptionPayment = async (res: any, sessionId: string) => {
     // 4️⃣ Update payment status
     if (paymentIntent.status === "succeeded") {
       payment.status = "success";
-      payment.paymentMethod = paymentIntent.payment_method_types?.[0] || "card";
+      payment.paymentMethod = paymentIntent.payment_method_types?.[0] || "card" as any;
       await payment.save({ session: dbSession });
 
       // 5️⃣ Create new MySubscription
@@ -156,10 +156,10 @@ const getAllPaymentsRecived = async (query: Record<string, any> = {}) => {
   const baseFilter = { isDeleted: false, status: "success" };
 
   const paymentQuery = new QueryBuilder(
-    Payment.find(baseFilter).populate('employerId', 'name email phone'),
+    Payment.find(baseFilter).populate('employerId', 'name email phone companyName'),
     query
   )
-     .search(["employerId.name", "employerId.email", "employerId.phone", "subscriptionType", "paymentId", "paymentMethod"])
+     .search(["employerId.name", "employerId.email", "employerId.phone", 'employerId.companyName', "subscriptionType", "paymentId", "paymentMethod"])
     .filter()
     .sort()
     .paginate()

@@ -7,14 +7,39 @@ import AppError from '../../error/AppError';
 import { generateReferralCode } from './job.utils';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { Application } from '../application/application.model';
+import { emit } from 'process';
+import { emitNotification } from '../../../socketIo';
+import { getAdminId } from '../../DB/adminStrore';
+import { User } from '../user/user.model';
 
 
 
 const createJob = async (payload: TJob) => {
+
+  const isExistEmployer = await User.findById(payload.employerId);
+
+  if (!isExistEmployer) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Employer not found');
+  }
+
   payload.jobReferralCode = generateReferralCode();
 
   const job = await Job.create(payload);
+
+  if(!job) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Job created failed');
+  }
+
+  // sent notification to admin
+    emitNotification({
+      senderId: job.employerId,
+      receiverId: getAdminId(),
+      message: `New requirement submitted by ${isExistEmployer.companyName}`,
+    });
+
+
   return job;
+  
 };
 
 // const getAllJobs = async (query: Record<string, any> = {}) => {
