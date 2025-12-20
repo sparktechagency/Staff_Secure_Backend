@@ -14,6 +14,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Check Secrets
+        run: |
+            if [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
+            echo "❌ SSH_PRIVATE_KEY is empty!"
+            else
+            echo "✅ SSH_PRIVATE_KEY exists"
+            fi
+
+            if [ -z "${{ secrets.DROPLET_IP }}" ]; then
+            echo "❌ DROPLET_IP is empty!"
+            else
+            echo "✅ DROPLET_IP exists"
+            fi
+
       # 2️⃣ Test secrets (safe, console)
       - name: Check Secrets
         run: |
