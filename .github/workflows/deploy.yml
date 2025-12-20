@@ -19,6 +19,7 @@ jobs:
         run: |
           export SSH_KEY="${{ secrets.SSH_PRIVATE_KEY }}"
           export VPS_IP="${{ secrets.DROPLET_IP }}"
+          export SSH_PORT="${{ secrets.SSH_PORT }}"  # Optional, default 22
 
           if [ -z "$SSH_KEY" ]; then
             echo "❌ SSH_PRIVATE_KEY missing. Aborting deploy."
@@ -34,6 +35,13 @@ jobs:
             echo "✅ VPS_IP loaded: $VPS_IP"
           fi
 
+          if [ -z "$SSH_PORT" ]; then
+            export SSH_PORT=22
+            echo "ℹ️ SSH port not set, using default 22"
+          else
+            echo "✅ Using custom SSH port: $SSH_PORT"
+          fi
+
       # 3️⃣ Setup SSH agent
       - name: Setup SSH agent
         uses: webfactory/ssh-agent@v0.7.0
@@ -47,6 +55,7 @@ jobs:
           host: ${{ secrets.DROPLET_IP }}
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
           script: |
             echo "🖥️ Adding npm & pm2 to PATH"
             export PATH=$PATH:/usr/bin:/usr/local/bin:/root/.local/share/fnm/node-versions/v24.12.0/installation/bin
