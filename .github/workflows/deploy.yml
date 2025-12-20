@@ -10,87 +10,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2️⃣ Safe Secret Check
-      - name: Validate Secrets
-        run: |
-          export SSH_KEY="${{ secrets.SSH_PRIVATE_KEY }}"
-          export VPS_IP="${{ secrets.DROPLET_IP }}"
-          export SSH_PORT="${{ secrets.SSH_PORT }}"  # Optional, default 22
-
-          if [ -z "$SSH_KEY" ]; then
-            echo "❌ SSH_PRIVATE_KEY missing. Aborting deploy."
-            exit 1
-          else
-            echo "✅ SSH_PRIVATE_KEY loaded (masked)"
-          fi
-
-          if [ -z "$VPS_IP" ]; then
-            echo "❌ DROPLET_IP missing. Aborting deploy."
-            exit 1
-          else
-            echo "✅ VPS_IP loaded: $VPS_IP"
-          fi
-
-          if [ -z "$SSH_PORT" ]; then
-            export SSH_PORT=22
-            echo "ℹ️ SSH port not set, using default 22"
-          else
-            echo "✅ Using custom SSH port: $SSH_PORT"
-          fi
-
-      # 3️⃣ Setup SSH agent
-      - name: Setup SSH agent
+      - name: Setup SSH and validate secrets
         uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      # 4️⃣ Deploy to VPS
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.DROPLET_IP }}
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
+          port: ${{ secrets.SSH_PORT || 22 }}
           script: |
-            echo "🖥️ Adding npm & pm2 to PATH"
             export PATH=$PATH:/usr/bin:/usr/local/bin:/root/.local/share/fnm/node-versions/v24.12.0/installation/bin
 
-            echo "📁 Navigating to Backend folder..."
-            cd ~/application/Staff_Secure_Backend
+            cd ~/application/Staff_Secure_Backend || exit 1
 
-            echo "📥 Resetting to latest git..."
             git fetch --all
             git reset --hard origin/main
 
-            echo "📦 Installing dependencies..."
             npm install
 
-            echo "🔍 Checking PM2 process..."
             if pm2 describe Backend > /dev/null 2>&1; then
-                echo "🔄 PM2 process exists → restarting..."
                 pm2 restart Backend
             else
-                echo "🚀 PM2 process not found → creating..."
                 pm2 start npm --name "Backend" -- run dev
             fi
 
-            echo "💾 Saving PM2 process list..."
             pm2 save
 
-            echo "✅ Deployment finished successfully!"
-
-            # Optional: verify PATH and versions
-            echo "🔧 Verify commands:"
-            which node
-            node -v
-            which npm
-            npm -v
-            which pm2
-            pm2 -v
-
-            echo "👋 Goodbye!"
+            echo "✅ Deployment finished!"
