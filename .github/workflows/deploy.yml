@@ -71,4 +71,4 @@ jobs:
             echo "💾 Saving PM2 process list..."
             pm2 save
 
-            echo "✅ Deployment finished successfullyyyy!"
+            echo "✅ Deployment finished successfull!"
