@@ -664,7 +664,7 @@ async function serverHomePage(): Promise<string> {
     <body>
       <!-- Login Form -->
       <div class="login-container" id="login-container">
-        <h2>Server Monitoring Login</h2>
+        <h2>Server Monitoring Login updated</h2>
         <div class="server-status">Server Status: <span id="server-status-text">Checking...</span></div>
         <input type="text" id="username" placeholder="Username" />
         <input type="password" id="password" placeholder="Password" />
