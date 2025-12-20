@@ -10,14 +10,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout repo
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # 2️⃣ Test secrets (safe, console)
+      - name: Check Secrets
+        run: |
+          if [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
+            echo "❌ SSH_PRIVATE_KEY is empty!"
+            exit 1
+          else
+            echo "✅ SSH_PRIVATE_KEY exists"
+          fi
+
+          if [ -z "${{ secrets.DROPLET_IP }}" ]; then
+            echo "❌ DROPLET_IP is empty!"
+            exit 1
+          else
+            echo "✅ DROPLET_IP exists"
+          fi
+
+      # 3️⃣ Setup SSH agent
       - name: Setup SSH agent
         uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+      # 4️⃣ Deploy to VPS
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -25,6 +45,7 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # Navigate to backend folder
             cd /application/Staff_Secure_Backend
 
             echo "📥 Pulling latest code..."
@@ -44,3 +65,5 @@ jobs:
 
             echo "💾 Saving PM2 process list..."
             pm2 save
+
+            echo "✅ Deploy finished successfully!"
