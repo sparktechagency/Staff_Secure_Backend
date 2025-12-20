@@ -10,31 +10,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repo
+      # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2️⃣ Safe Secret Check for Deployment
+      # 2️⃣ Safe Secret Check
       - name: Validate Secrets
         run: |
-          # Export secrets as shell variables
+          # Export secrets
           export SSH_KEY="${{ secrets.SSH_PRIVATE_KEY }}"
           export VPS_IP="${{ secrets.DROPLET_IP }}"
 
-          # Check if SSH key exists
+          # Check SSH key
           if [ -z "$SSH_KEY" ]; then
-            echo "❌ SSH_PRIVATE_KEY is missing. Aborting deploy."
+            echo "❌ SSH_PRIVATE_KEY missing. Aborting deploy."
             exit 1
           else
-            echo "✅ SSH_PRIVATE_KEY loaded (masked for safety)"
+            echo "✅ SSH_PRIVATE_KEY loaded (masked)"
           fi
 
-          # Check if VPS IP exists
+          # Check VPS IP
           if [ -z "$VPS_IP" ]; then
-            echo "❌ DROPLET_IP is missing. Aborting deploy."
+            echo "❌ DROPLET_IP missing. Aborting deploy."
             exit 1
           else
-            echo "✅ DROPLET_IP loaded: $VPS_IP"
+            echo "✅ VPS_IP loaded: $VPS_IP"
           fi
 
       # 3️⃣ Setup SSH agent
@@ -51,6 +51,10 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            echo "🖥️ Adding npm & pm2 to PATH"
+            export PATH=$PATH:/usr/bin:/usr/local/bin
+
+            echo "📁 Navigating to Backend folder..."
             cd /application/Staff_Secure_Backend
 
             echo "📥 Pulling latest code..."
@@ -71,4 +75,4 @@ jobs:
             echo "💾 Saving PM2 process list..."
             pm2 save
 
-            echo "✅ Deployment finished successfull!"
+            echo "✅ Deployment finished successfully!"
