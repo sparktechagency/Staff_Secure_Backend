@@ -30,9 +30,10 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: true,
+    // origin: true,
+    origin: "http://31.97.115.169:3001",
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
   }),
 );
 
