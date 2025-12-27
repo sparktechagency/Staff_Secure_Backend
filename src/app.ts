@@ -41,7 +41,7 @@ app.use(logHttpRequests);
 
 
 
-app.use(limiter.rootlimiter); // 👈 Add before your routes
+app.use(limiter.rootlimiter); // 👈 root limiter
 
 
 /* ---------- Routes ---------- */
