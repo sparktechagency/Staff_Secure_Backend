@@ -439,6 +439,7 @@ const getAllCandidates = async (query: Record<string, any> = {}) => {
     limit = 10,
   } = query;
 
+  console.log("query", query);
   // --------------------------
   // Step 1: User-level filters
   // --------------------------
