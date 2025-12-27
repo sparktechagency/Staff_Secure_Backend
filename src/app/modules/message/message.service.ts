@@ -7,7 +7,6 @@ import { Types } from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
 
 const sendMessage = async (data: any) => {
-  console.log({data})
    // Check if text, chatId, and sender are provided
    if (!data.text || !data.chat || !data.sender) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Text, chatId, and sender are required');
@@ -217,7 +216,7 @@ const approveMessage = async (messageId: string) => {
     throw new AppError(httpStatus.NOT_FOUND, "Message not found");
   }
 
-  if (existingMessage.approvalStatus === "approved") {
+  if ((existingMessage as any).approvalStatus === "approved") {
     throw new AppError(httpStatus.BAD_REQUEST, "Message is already approved");
   }
 
@@ -241,7 +240,7 @@ const rejectMessage = async (messageId: string) => {
     throw new AppError(httpStatus.NOT_FOUND, "Message not found");
   }
 
-  if (message.approvalStatus === "rejected") {
+  if ((message as any).approvalStatus === "rejected") {
     throw new AppError(httpStatus.BAD_REQUEST, "Message is already rejected");
   }
 

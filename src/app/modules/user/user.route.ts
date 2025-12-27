@@ -7,6 +7,7 @@ import { verifyOtpValidations } from '../otp/otp.validation';
 import { userController } from './user.controller';
 import { userValidation } from './user.validation';
 import { USER_ROLE } from './user.constants';
+import { limiter } from '../../utils/limiter';
 const upload = fileUpload('./public/uploads/profile');
 
 export const userRoutes = Router();
@@ -14,6 +15,7 @@ export const userRoutes = Router();
 userRoutes
   .post(
     '/create',
+    limiter.createUserLimiter,
     validateRequest(userValidation?.userValidationSchema),
     userController.createUser,
   )
@@ -61,13 +63,13 @@ userRoutes
 
   .get(
     "/candidate/all",
-    // auth(USER_ROLE.ADMIN, USER_ROLE.EMPLOYER),
+    auth(USER_ROLE.ADMIN),
     userController.getAllCandidates
   )
 
   .get(
     "/employer/all",
-    // auth(USER_ROLE.ADMIN, USER_ROLE.EMPLOYER),
+    auth(USER_ROLE.ADMIN),
     userController.getAllEmployers
   )
 

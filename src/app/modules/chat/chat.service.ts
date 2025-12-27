@@ -165,7 +165,6 @@ const getMyChatList = async (userId: string, query: any) => {
   const data: any[] = [];
 
   for (const chatItem of chats) {
-    console.log('chatItem', chatItem);
     if (!chatItem.users.length) continue;
 
     const chatId = chatItem._id;
@@ -200,7 +199,6 @@ const getMyChatList = async (userId: string, query: any) => {
     });
   }
 
-  console.log('data', data);
   // Sort chats by last message time (descending)
   data.sort((a, b) => {
     const dateA = a.lastMessageCreatedAt
@@ -219,7 +217,6 @@ const getMyChatList = async (userId: string, query: any) => {
 const getChatById = async (chatId: string) => {
   const result = await Chat.findById(chatId);
 
-  console.log(result);
   // If no chat is found, throw an AppError
   if (!result) {
     throw new AppError(httpStatus.NOT_FOUND, 'Chat not found');

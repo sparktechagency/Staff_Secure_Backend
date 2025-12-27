@@ -27,8 +27,6 @@ export const createStripePaymentSession = async (payload: {
   const finalAmount = amount - discount;
   if (finalAmount < 0) throw new AppError(400, 'Discount cannot exceed amount');
 
-  console.log({payload})
-
   // ✅ Use camelCase for Stripe properties
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'], // ✅ snake_case

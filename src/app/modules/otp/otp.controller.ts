@@ -14,7 +14,6 @@ import httpStatus from 'http-status';
 const resendOtp = catchAsync(async (req: Request, res: Response) => {
       let token: any = req.headers?.authorization || req?.headers?.token;
 
-    console.log({token})
 
     if (token.startsWith('Bearer ')) {
       token = token.slice(7, token.length);

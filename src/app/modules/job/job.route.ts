@@ -23,7 +23,7 @@ router
 
     .get(
         "/all/withApplicantsCount",
-        // auth(USER_ROLE.CANDIDATE,USER_ROLE.EMPLOYER, USER_ROLE.ADMIN),
+        auth(USER_ROLE.CANDIDATE,USER_ROLE.EMPLOYER, USER_ROLE.ADMIN),
         JobController.getAllJobsWithApplicantCount
     )
 

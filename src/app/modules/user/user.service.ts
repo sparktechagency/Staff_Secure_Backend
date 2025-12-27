@@ -29,7 +29,6 @@ export interface OTPVerifyAndCreateUserProps {
 }
 
 const createUserToken = async (payload: TUserCreate) => {
-  console.log('before create user => >> ', { payload })
 
   const { name, email, password, role, companyName, phone } = payload
 
@@ -116,7 +115,6 @@ const otpVerifyAndCreateUser = async ({
     throw new AppError(httpStatus.BAD_REQUEST, 'You are not authorised')
   }
 
-  console.log({decodeData})
   const { name, email, password, role, companyName, phone } = decodeData
 
   // // Check OTP
@@ -166,7 +164,6 @@ const otpVerifyAndCreateUser = async ({
     )
 
 
-    console.log("user => >> ", user[0]);
     // create chat with admin
     await ChatService.createChatWithAdmin(user[0]._id.toString())
 
@@ -254,7 +251,6 @@ const updateUserCandidateProfile = async (
 
   if (user.candidateProfileId) {
     
-    console.log("update data =>>> ",rest);
     // Update existing candidate profile
     candidateProfile = await CandidateProfile.findByIdAndUpdate(
       user.candidateProfileId,
@@ -434,78 +430,104 @@ const getAllEmployers = async (
 };
 
 const getAllCandidates = async (query: Record<string, any> = {}) => {
+  const {
+    searchTerm,
+    search,
+    location,
+    designation,
+    page = 1,
+    limit = 10,
+  } = query;
 
-  const baseFilter = {
+  // --------------------------
+  // Step 1: User-level filters
+  // --------------------------
+  const matchUser: any = {
     role: USER_ROLE.CANDIDATE,
     isDeleted: false,
   };
 
+  // ✅ searchTerm → ONLY name
+  const nameSearch = searchTerm || search;
+  if (nameSearch) {
+    matchUser.name = { $regex: nameSearch, $options: 'i' };
+  }
 
-  const candidateQuery = new QueryBuilder(
-    User.find(baseFilter).populate({
-      path: 'candidateProfileId',
-      select: 'location designation skills yearsOfExperience dateOfBirth bio cv availability qualifications',
-    }),
-    query,
-  )
-    .search(['name', 'phone'])
-    .filter()
-    .sort()
-    .paginate()
-    .fields();
+  // --------------------------
+  // Step 2: Profile-level filters
+  // --------------------------
+  const matchProfile: any = {};
+  if (location) {
+    matchProfile['candidateProfileId.location'] = { $regex: location, $options: 'i' };
+  }
+  if (designation) {
+    matchProfile['candidateProfileId.designation'] = { $regex: designation, $options: 'i' };
+  }
 
-  /**
-   * Step 4: Execute query
-   */
-  const result = await candidateQuery.modelQuery;
-  const meta = await candidateQuery.countTotal();
+  // --------------------------
+  // Step 3: Build aggregation pipeline
+  // --------------------------
+  const pipeline: any[] = [
+    { $match: matchUser },
 
-  return { meta, result };
+    {
+      $lookup: {
+        from: 'candidateprofiles',
+        localField: 'candidateProfileId',
+        foreignField: '_id',
+        as: 'candidateProfileId',
+      },
+    },
+
+    {
+      $unwind: {
+        path: '$candidateProfileId',
+        preserveNullAndEmptyArrays: true, // ✅ include users without profile
+      },
+    },
+  ];
+
+
+    if (Object.keys(matchProfile).length) {
+    pipeline.push({ $match: matchProfile });
+  }
+
+
+
+  // --------------------------
+  // Step 4: Sorting & Pagination
+  // --------------------------
+  pipeline.push(
+    { $sort: { createdAt: -1 } },
+    { $skip: (Number(page) - 1) * Number(limit) },
+    { $limit: Number(limit) },
+  );
+
+  // --------------------------
+  // Step 5: Execute query
+  // --------------------------
+  const result = await User.aggregate(pipeline);
+
+  // --------------------------
+  // Step 6: Count total documents (for meta)
+  // --------------------------
+  const countPipeline = [...pipeline.filter(stage => !('$skip' in stage) && !('$limit' in stage))];
+  const totalArr = await User.aggregate([...countPipeline, { $count: 'total' }]);
+  const total = totalArr[0]?.total || 0;
+
+  // --------------------------
+  // Step 7: Return response
+  // --------------------------
+  return {
+    meta: {
+      page: Number(page),
+      limit: Number(limit),
+      total,
+      totalPage: Math.ceil(total / Number(limit)),
+    },
+    result,
+  };
 };
-
-// const getAllCandidates = async (query: Record<string, any> = {}) => {
-//   /**
-//    * Step 1: Get candidate user IDs
-//    */
-//   const candidateUsers = await User.find({
-//     role: USER_ROLE.CANDIDATE,
-//     isDeleted: false,
-//     status: 'active',
-//   }).select('_id');
-
-//   const candidateUserIds = candidateUsers.map(user => user._id);
-
-//   /**
-//    * Step 2: Base filter for candidate profiles
-//    */
-//   const baseFilter = {
-//     userId: { $in: candidateUserIds },
-//   };
-
-//   /**
-//    * Step 3: QueryBuilder
-//    */
-//   const candidateQuery = new QueryBuilder(
-//     CandidateProfile.find(baseFilter).populate({
-//       path: 'userId',
-//       select: 'name email phone profileImage role status',
-//     }),
-//     query,
-//   )
-//     .search(['name', 'email', 'designation', 'skills', 'location'])
-//     .filter()
-//     .sort()
-//     .paginate()
-//     .fields();
-
-//   /**
-//    * Step 4: Execute query
-//    */
-//   const result = await candidateQuery.modelQuery;
-//   const meta = await candidateQuery.countTotal();
-
-//   return { meta, result };
-// };
 
 
 

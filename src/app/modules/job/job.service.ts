@@ -73,7 +73,7 @@ const getAllJobs = async (query: Record<string, any> = {}) => {
     }),
     query
   )
-    .search(['title', 'description', 'requirements', 'skillsRequired'])
+    .search(['title', 'description', 'requirements', 'keyResponsibilities', 'skillsRequired'])
     .filter()
     .paginate()
     .fields();

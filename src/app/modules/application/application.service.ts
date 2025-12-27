@@ -412,11 +412,11 @@ const getTopAiSuggestedCvsForJob = async (jobId: string) => {
     throw new Error("Invalid jobId");
   }
 
-  console.log({jobId})
   // Filter applications that have an AI score
   const baseFilter = {
     jobId: new mongoose.Types.ObjectId(jobId),
     isDeleted: false,
+    status: 'applied',
     aiScore: { $ne: null },
   };
 

@@ -26,7 +26,6 @@ const userCreateVarification = catchAsync(async (req, res) => {
 
     let token: any = req.headers?.authorization || req?.headers?.token;
 
-    console.log({token})
 
     if (token.startsWith('Bearer ')) {
       token = token.slice(7, token.length);
@@ -77,9 +76,7 @@ const updateCandidateProfile = catchAsync(async (req: Request, res: Response) =>
   }
 
   if (req?.file) {
-    console.log("file ==>>> ",req?.file);
     req.body.cv = storeFile('profile', req?.file?.filename);
-    console.log("body =>>> ",req.body);
   }
 
   const result = await userService.updateUserCandidateProfile(isExist, req.body);

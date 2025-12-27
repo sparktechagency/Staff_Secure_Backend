@@ -60,7 +60,7 @@ messageRoutes
 
   .get(
     '/pending', 
-    // auth('user', 'admin'),
+    auth('user', 'admin'),
     messageController.getAllPendingMessages
   )
 

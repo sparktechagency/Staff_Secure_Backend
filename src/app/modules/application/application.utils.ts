@@ -11,12 +11,9 @@ export const generateAiScoresForJob = async (jobId: string) => {
   });
 
   if (applications.length === 0) {
-    console.log("No applications to score");
     return { message: "No applications to score" };
   }
 
-  console.log(`Generating AI scores for ${applications.length} applications`);
-  console.log(applications);
 
   for (const app of applications) {
   

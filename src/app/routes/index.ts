@@ -12,6 +12,7 @@ import { overviewRoutes } from "../modules/overview/overview.route";
 import { mySubscriptionRoutes } from "../modules/mySubscription/mySubscription.routes";
 import { messageRoutes } from "../modules/message/message.route";
 import { paymentRoutes } from "../modules/payment/payment.route";
+import { ContactRoutes } from "../modules/contactUs/contactUs.route";
 
 const router = Router();
 
@@ -67,8 +68,11 @@ const moduleRoutes = [
   {
     path: "/notification",
     route: notificationRoutes
+  },
+  {
+    path: "/contactUs",
+    route: ContactRoutes
   }
-
 
 ];
 

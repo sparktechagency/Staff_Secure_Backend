@@ -4,11 +4,12 @@ import auth from '../../middleware/auth';
 import validateRequest from '../../middleware/validateRequest';
 import { authValidation } from './auth.validation';
 import { USER_ROLE } from '../user/user.constants';
+import { limiter } from '../../utils/limiter';
 
 export const authRoutes = Router();
 
 authRoutes
-  .post('/login', authControllers.login)
+  .post('/login', limiter.loginLimiter, authControllers.login)
   
   .post(
     '/refresh-token',

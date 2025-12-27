@@ -68,8 +68,6 @@ const forgotPasswordOtpMatch = catchAsync(
   async (req: Request, res: Response) => {
     let token: any = req.headers?.authorization || req?.headers?.token;
 
-    console.log({token})
-
     if (token.startsWith('Bearer ')) {
       token = token.slice(7, token.length);
     }
@@ -99,7 +97,6 @@ const forgotPasswordOtpMatch = catchAsync(
 const resetPassword = catchAsync(async (req: Request, res: Response) => {
       let token: any = req.headers?.authorization || req?.headers?.token;
 
-    console.log({token})
 
     if (token.startsWith('Bearer ')) {
       token = token.slice(7, token.length);

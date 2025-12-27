@@ -31,6 +31,7 @@ export default {
   admin_phone: process.env.ADMIN_PHONE,
   nodemailer_host_email: process.env.NODEMAILER_HOST_EMAIL,
   nodemailer_host_pass: process.env.NODEMAILER_HOST_PASS,
+  contact_email: process.env.CONTACT_EMAIL,
   otp_expire_time: process.env.OTP_EXPIRE_TIME,
   otp_token_expire_time: process.env.OTP_TOKEN_EXPIRE_TIME,
   socket_port: process.env.SOCKET_PORT,

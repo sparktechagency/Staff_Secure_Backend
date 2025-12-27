@@ -33,7 +33,6 @@ const addNewChat = catchAsync(async (req: Request, res: Response) => {
     users, // Use the modified users array
   };
 
-  console.log('chatData', chatData);
 
   const result = await ChatService.addNewChat(chatData);
 
@@ -49,12 +48,10 @@ const addNewChat = catchAsync(async (req: Request, res: Response) => {
 
 const getMyChatList = catchAsync(async (req: Request, res: Response) => {
 
-  console.log("hitteed this =>>>> ", req.query,req.user)
   const { userId } = req.user;
 
   const result = await ChatService.getMyChatList(userId, req.query);
 
-  console.log("result =>>>> ", result)
   
   sendResponse(res, {
     statusCode: 200,
@@ -70,14 +67,12 @@ const leaveUserFromSpecificChatController = catchAsync(
     const { chatId } = req.params;
     const { userId, fullName } = req.user;
 
-    console.log('req user = > ', req.user);
     const payload = {
       chatId,
       userId,
       fullName,
     };
 
-    console.log('payload ---->>> ', payload);
 
     const result = await ChatService.leaveUserFromSpecific(payload);
     sendResponse(res, {

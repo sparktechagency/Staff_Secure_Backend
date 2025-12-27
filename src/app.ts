@@ -14,6 +14,7 @@ import serverHomePage from './app/helpers/serverHomePage';
 import { logErrorHandler, logHttpRequests } from './app/utils/logger';
 import path from 'path';
 import fs from 'fs';
+import { limiter } from './app/utils/limiter';
 
 const app: Application = express();
 
@@ -38,16 +39,9 @@ app.use(
 
 app.use(logHttpRequests);
 
-// 👮 Rate Limiter Middleware (apply to all requests)
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 10000 requests per 15 min
-  message: "🚫 Too many requests from this IP. Please try again later.",
-  standardHeaders: true,
-  legacyHeaders: false,
-});
 
-app.use(limiter); // 👈 Add before your routes
+
+app.use(limiter.rootlimiter); // 👈 Add before your routes
 
 
 /* ---------- Routes ---------- */

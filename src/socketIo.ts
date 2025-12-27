@@ -123,7 +123,7 @@ export const initSocketIO = async (server: HttpServer): Promise<void> => {
       // (Optional) In addition to auto-registering, you can still listen for a "userConnected" event if needed.
       socket.on('userConnected', ({ userId }: { userId: string }) => {
         connectedUsers.set(userId, { socketID: socket.id })
-        console.log(`User ${userId} connected with socket ID: ${socket.id}`)
+        // console.log(`User ${userId} connected with socket ID: ${socket.id}`)
       })
 
       //----------------------online array send for front end------------------------//
@@ -281,7 +281,7 @@ export const initSocketIO = async (server: HttpServer): Promise<void> => {
           }
         }
 
-        console.log('connectedUsers', Array.from(connectedUsers))
+        // console.log('connectedUsers', Array.from(connectedUsers))
         io.emit('onlineUser', Array.from(connectedUsers.keys()))
       })
       //-----------------------Disconnect functionlity end ------------------------//
