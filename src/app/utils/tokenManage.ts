@@ -5,8 +5,14 @@ import httpStatus from 'http-status';
 interface CreateTokenParams {
   payload: JwtPayload;
   access_secret: Secret;
-  expity_time: string | number;
+  expity_time: any;
 }
+
+// interface CreateTokenParams {
+//   payload: object;
+//   access_secret: Secret;
+//   expiry_time: StringValue | number;
+// }
 
 interface VerifyTokenParams {
   token: string;
