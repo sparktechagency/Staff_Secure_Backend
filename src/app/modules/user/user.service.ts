@@ -464,6 +464,9 @@ const getAllCandidates = async (query: Record<string, any> = {}) => {
     matchProfile['candidateProfileId.designation'] = { $regex: designation, $options: 'i' };
   }
 
+
+  console.log("matchUser", matchUser);
+  console.log("matchProfile", matchProfile);
   // --------------------------
   // Step 3: Build aggregation pipeline
   // --------------------------
