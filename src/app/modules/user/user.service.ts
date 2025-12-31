@@ -7,7 +7,7 @@ import config from '../../config'
 import { otpServices } from '../otp/otp.service'
 import { generateOptAndExpireTime } from '../otp/otp.utils'
 import { TPurposeType } from '../otp/otp.interface'
-import { otpSendEmail } from '../../utils/eamilNotifiacation'
+import { otpSendEmail, sendWelcomeEmail } from '../../utils/eamilNotifiacation'
 import { createToken, verifyToken } from '../../utils/tokenManage'
 import mongoose, { Types } from 'mongoose'
 import { getAdminId } from '../../DB/adminStrore'
@@ -17,7 +17,6 @@ import { CandidateProfile } from '../candidateProfile/candidateProfile.model'
 import { TUser, TUserCreate } from './user.interface'
 import { ChatService } from '../chat/chat.service'
 import QueryBuilder from '../../builder/QueryBuilder'
-import { get } from 'http'
 import { ICandidateProfile } from '../candidateProfile/candidateProfile.interface'
 import { MySubscription } from '../mySubscription/mySubscription.model'
 import { Application } from '../application/application.model'
@@ -171,15 +170,27 @@ const otpVerifyAndCreateUser = async ({
     session.endSession()
 
     const notificationData = {
-      userId: user[0]._id,
+      senderId: user[0]._id,
       receiverId: getAdminId(),
       message: 'New user registered',
     } as any
 
+    console.log({notificationData})
     // emit notification in background, don’t block response
     emitNotification(notificationData).catch((err) => {
       console.error('Notification emit failed:', err)
     })
+
+    // 🔔 Send welcome email (do not block main flow)
+    sendWelcomeEmail({
+      sentTo: user[0].email,
+      subject: "Welcome to StaffSecure ",
+      name: user[0].name as string,
+      role: user[0].role as any,
+    }).catch((err) => {
+      console.error('Welcome email failed:', err)
+    })
+
     // Generate access token
     const jwtPayload = {
       userId: user[0]._id.toString(),
