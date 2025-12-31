@@ -47,6 +47,7 @@ const jobSchema = new Schema<TJob>(
     },
     lengthOfWork: {
       type: String,
+      required: false,
       default: ""
     },
     paymentType: {
