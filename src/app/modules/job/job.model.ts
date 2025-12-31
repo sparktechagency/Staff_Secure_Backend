@@ -42,8 +42,40 @@ const jobSchema = new Schema<TJob>(
 
     workType: {
       type: String,
-      enum: ['Full-Time', 'Part-Time', 'Contract'],
+      enum: ['Full-Time', 'Part-Time', 'Temporary'],
       required: true,
+    },
+    lengthOfWork: {
+      type: String,
+      default: ""
+    },
+    paymentType: {
+      type: String,
+      enum: ['Monthly', "Hourly"]
+    },
+    annualPay: {
+      type: Number,
+      default: 0
+    },
+    hourlyRequired: {
+      type: Number,
+      default: 0
+    },
+    startDate: {
+      type: Date,
+      required: true
+    },
+    startTime: {
+      type: String,
+      required: true
+    },
+    finishTime: {
+      type: String,
+      required: true
+    },
+    daysOfWork: {
+      type: [ String ],
+      required: true
     },
     workersNeeded: {
       type: Number,

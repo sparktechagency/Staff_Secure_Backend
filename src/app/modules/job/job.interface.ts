@@ -7,13 +7,22 @@ export type TSalaryRange = {
 
 export type TJobType = 'Onsite' | 'Remote' | 'Hybrid';
 export type TJobStatus = 'New' | 'Cvs Sent' | 'Closed';
-export type TWorkType = 'Full-Time' | 'Part-Time' | 'Contract';
+export type TWorkType = 'Full-Time' | 'Part-Time' | 'Temporary';
+export type TPaymentType = 'Monthly' | 'Hourly';
 
 export type TJob = {
   employerId: Types.ObjectId; // ref User
   jobReferralCode: string;
   title: string;
   location: string;
+  lengthOfWork: string;
+  paymentType: TPaymentType;
+  annualPay: number;
+  hourlyRequired: number;
+  startDate: Date;
+  startTime: string;
+  finishTime: string;
+  daysOfWork: [string];
   jobType: TJobType;
   salaryRange: TSalaryRange;
   experience: number;
