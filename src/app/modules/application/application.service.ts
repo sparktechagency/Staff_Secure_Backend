@@ -345,7 +345,7 @@ const getAllRecivedCvsOfSpecificJobProvider = async (
 
   const appQuery = new QueryBuilder(
     Application.find(baseFilter)
-      .populate('candidateId', 'name email yearsOfExperience cv bio')
+      .populate('candidateId', 'name email yearsOfExperience cv bio documentAndCertifications')
       .populate('jobId', 'title jobReferralCode')
       .populate('jobProviderOwnerId', 'name email'),
     query
