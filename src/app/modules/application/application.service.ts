@@ -382,7 +382,7 @@ const getAllApplicantCvsOfSpecificJob = async (
       .populate({
         path: 'candidateId',
         select:
-          'name email cv',
+          'name email cv documentAndCertifications',
       }),
     query
   )
@@ -425,7 +425,7 @@ const getTopAiSuggestedCvsForJob = async (jobId: string) => {
     .select("status appliedAt aiScore aiReason matchedSkills aiMatchLevel candidateId jobId jobProviderOwnerId adminNotes ")
     .populate({
       path: "candidateId",
-      select: "name email cv designation skills yearsOfExperience bio location availability",
+      select: "name email cv designation skills yearsOfExperience bio location availability documentAndCertifications",
     })
     .populate({
       path: "jobId",

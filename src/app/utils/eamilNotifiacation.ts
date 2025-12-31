@@ -23,6 +23,15 @@ interface WelcomeEmailParams {
   role: 'employer' | 'Candidate';
 }
 
+
+interface EmployerSubscriptionActivatedEmailParams {
+  sentTo: string;
+  subject: string;
+  companyName: string;
+  packageType: 'Platinum' | 'Diamond';
+}
+
+
 const otpSendEmail = async ({
   sentTo,
   subject,
@@ -143,5 +152,78 @@ const sendWelcomeEmail = async ({
 };
 
 
+const sendEmployerSubscriptionActivatedEmail = async ({
+  sentTo,
+  subject,
+  companyName,
+  packageType,
+}: EmployerSubscriptionActivatedEmailParams): Promise<void> => {
+  await sendEmail(
+    sentTo,
+    subject,
+    `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2>Your Staff Secure ${packageType} package is now active</h2>
 
-export { otpSendEmail, sendBookingNotificationEmail, sendWelcomeEmail };
+      <p>Hello <strong>${companyName}</strong>,</p>
+
+      <p>
+        Thank you for choosing Staff Secure and for purchasing a
+        <strong>${packageType}</strong> package.
+      </p>
+
+      <p>
+        Your package is now active, and you can begin posting vacancies,
+        managing candidates, and accessing premium recruitment features
+        through your employer dashboard.
+      </p>
+
+      <hr style="margin: 24px 0;" />
+
+      <h3>Payroll services (optional)</h3>
+
+      <p>
+        If you require payroll services for a candidate or employee hired
+        through Staff Secure, you may contact our payroll partner:
+      </p>
+
+      <p>
+        <strong>SG Umbrella</strong><br />
+        Contact: Alex Powell
+      </p>
+
+      <p>
+        When contacting SG Umbrella, please quote the reference below to
+        receive the agreed discounted rate for payroll services:
+      </p>
+
+      <p>
+        <strong>Reference: Staff Secure X121</strong>
+      </p>
+
+      <p style="font-size: 14px; color: #555;">
+        Please note:
+        <ul>
+          <li>Payroll services are optional</li>
+          <li>Staff Secure does not process payroll directly</li>
+          <li>SG Umbrella will handle payroll independently</li>
+        </ul>
+      </p>
+
+      <p>
+        If you have any questions or require assistance, our team is
+        available via <strong>Live Chat</strong> inside your dashboard.
+      </p>
+
+      <p>
+        Kind regards,<br />
+        <strong>Staff Secure Team</strong><br />
+        Staff Secure Ltd
+      </p>
+    </div>`
+  );
+};
+
+
+
+
+export { otpSendEmail, sendBookingNotificationEmail, sendWelcomeEmail, sendEmployerSubscriptionActivatedEmail };
