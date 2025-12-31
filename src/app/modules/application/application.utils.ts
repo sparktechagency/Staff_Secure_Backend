@@ -149,6 +149,17 @@ export const generateAiScoreForApplication = async (
 
   await application.save();
 
+
+
+  console.log({
+    applicationId,
+    aiScore: application.aiScore,
+    aiReason: application.aiReason,
+    matchedSkills: application.matchedSkills,
+    aiMatchLevel: application.aiMatchLevel,
+    aiMatchSummary: `AI Match: ${application.aiScore}% - ${application.aiMatchLevel}`,
+  })
+
   /* ---------------------------------------------
      Final Response
   ---------------------------------------------- */
