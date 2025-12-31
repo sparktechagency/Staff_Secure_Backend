@@ -184,12 +184,18 @@ const otpVerifyAndCreateUser = async ({
     // 🔔 Send welcome email (do not block main flow)
     sendWelcomeEmail({
       sentTo: user[0].email,
-      subject: "Welcome to StaffSecure ",
-      name: user[0].name as string,
+      subject:
+        user[0].role === 'employer'
+          ? 'Welcome to Staff Secure'
+          : 'Your Staff Secure Candidate Profile Is Ready',
+      name:
+        user[0].role === 'Employer'
+          ? user[0].companyName || user[0].name
+          : user[0].name as any,
       role: user[0].role as any,
     }).catch((err) => {
-      console.error('Welcome email failed:', err)
-    })
+      console.error('Welcome email failed:', err);
+    });
 
     // Generate access token
     const jwtPayload = {

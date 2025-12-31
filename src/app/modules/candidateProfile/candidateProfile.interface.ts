@@ -13,4 +13,5 @@ export interface ICandidateProfile extends Document {
   skills: string[];
   bio: string;
   cv: string; // URL or file path to CV
+  documentAndCertifications?: [string] ;
 }

@@ -55,6 +55,10 @@ const candidateProfileSchema = new Schema<ICandidateProfile>(
       type: String,
       default: ""
     },
+    documentAndCertifications: {
+      type: [ String ] ,
+      default: []
+    }
   },
   {
     timestamps: true,

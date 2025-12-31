@@ -75,8 +75,34 @@ const updateCandidateProfile = catchAsync(async (req: Request, res: Response) =>
     throw new AppError(httpStatus.NOT_FOUND, 'User not found');
   }
 
-  if (req?.file) {
-    req.body.cv = storeFile('profile', req?.file?.filename);
+
+  //   // Check if there are uploaded files
+  if (req.files) {
+    try {
+      // Use storeFiles to process all uploaded files
+      const filePaths = storeFiles(
+        'profile',
+        req.files as { [fieldName: string]: Express.Multer.File[] },
+      );
+
+      if ( filePaths.image && filePaths.image.length > 0) {
+        req.body.cv = filePaths.image[0];
+      }
+
+      // Set documents (multiple files)
+      if (filePaths.documents && filePaths.documents.length > 0) {
+        req.body.documentAndCertifications = filePaths.documents; // Assign full array of documents
+      }
+
+    } catch (error: any) {
+      console.error('Error processing files:', error.message);
+      return sendResponse(res, {
+        statusCode: httpStatus.BAD_REQUEST,
+        success: false,
+        message: 'Failed to process uploaded files',
+        data: null,
+      });
+    }
   }
 
   const result = await userService.updateUserCandidateProfile(isExist, req.body);

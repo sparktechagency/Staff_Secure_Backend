@@ -37,7 +37,10 @@ userRoutes
   .patch(
     "/update-candidate-profile",
     auth(USER_ROLE.CANDIDATE),
-    upload.single('image'),
+    upload.fields([
+      { name: 'image', maxCount: 1 },
+      { name: 'documents', maxCount: 10 },
+    ]),
     parseData(),
     userController.updateCandidateProfile
   )
