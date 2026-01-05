@@ -39,6 +39,7 @@ userRoutes
     auth(USER_ROLE.CANDIDATE),
     upload.fields([
       { name: 'image', maxCount: 1 },
+      { name: 'cv', maxCount: 1 },
       { name: 'documents', maxCount: 10 },
     ]),
     parseData(),

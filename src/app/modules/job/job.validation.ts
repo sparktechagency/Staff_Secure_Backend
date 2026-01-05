@@ -1,3 +1,4 @@
+import { count } from 'console';
 import { z } from 'zod';
 
 /*
@@ -8,12 +9,8 @@ import { z } from 'zod';
 
 const salaryRangeSchema = z
   .object({
-    min: z.number().nonnegative({
-      message: 'Minimum salary must be greater than or equal to 0',
-    }),
-    max: z.number().nonnegative({
-      message: 'Maximum salary must be greater than or equal to 0',
-    }),
+    min: z.number().nonnegative(),
+    max: z.number().nonnegative(),
   })
   .refine((data) => data.max >= data.min, {
     message: 'Maximum salary must be greater than or equal to minimum salary',
@@ -28,101 +25,59 @@ const salaryRangeSchema = z
 
 const createJobValidationSchema = z.object({
   body: z.object({
-    title: z.string({
-      required_error: 'Job title is required',
-    }),
+    title: z.string().min(1, 'Job title is required'),
 
-    location: z.string({
-      required_error: 'Job location is required',
-    }),
+    location: z.string().min(1, 'Location is required'),
+    area: z.string().min(1, 'Area is required'),
+    postalCode: z.string().min(1, 'Postal code is required'),
+    county: z.string().min(1, 'County is required'),
 
-    lengthOfWork: z.string({
-      required_error: 'Length of work is required',
-    }),
+    jobType: z.enum(['Onsite', 'Remote', 'Hybrid']),
+    workType: z.enum(['Full-Time', 'Part-Time', 'Temporary']),
 
-    paymentType: z.enum(['Monthly', 'Hourly'], {
-      required_error: 'Payment type is required',
-    }),
+    lengthOfWork: z.string().optional(),
 
-    annualPay: z.number().nonnegative().optional(),
-
-    hourlyRequired: z.number().nonnegative().optional(),
-
-    startDate: z.string({
-      required_error: 'Start date is required',
-    }),
-
-    startTime: z.string({
-      required_error: 'Start time is required',
-    }),
-
-    finishTime: z.string({
-      required_error: 'Finish time is required',
-    }),
-
-    daysOfWork: z
-      .array(z.string())
-      .min(1, { message: 'At least one working day is required' }),
-
-    jobType: z.enum(['Onsite', 'Remote', 'Hybrid'], {
-      required_error: 'Job type is required',
-    }),
+    paymentType: z.enum(['Monthly', 'Fortnightly', 'Weekly']),
 
     salaryRange: salaryRangeSchema,
 
-    experience: z.number({
-      required_error: 'Experience is required',
-    }),
+    overtimePayRate: z.number().nonnegative(),
 
-    workType: z.enum(['Full-Time', 'Part-Time', 'Temporary'], {
-      required_error: 'Work type is required',
-    }),
+    annualPay: z.number().nonnegative().optional(),
 
-    workersNeeded: z.number({
-      required_error: 'Number of workers needed is required',
-    }),
+    hourlyRequired: z.number().nonnegative(),
 
-    description: z.string({
-      required_error: 'Job description is required',
-    }),
+    startDate: z.string().min(1, 'Start date is required'),
+    startTime: z.string().min(1, 'Start time is required'),
+    finishTime: z.string().min(1, 'Finish time is required'),
 
-    keyResponsibilities: z
+    daysOfWork: z
       .array(z.string())
-      .min(1, { message: 'At least one responsibility is required' }),
+      .min(1, 'At least one working day is required'),
 
-    requirements: z
+    // workersNeeded: z.number().positive(),
+
+    experience: z.number().nonnegative(),
+
+    description: z.string().min(1, 'Job description is required'),
+
+    candidateDuties: z
       .array(z.string())
-      .min(1, { message: 'At least one requirement is required' }),
+      .min(1, 'At least one duty is required'),
+
+    documentationCertificates: z
+      .array(z.string())
+      .min(1, 'At least one document or certificate is required'),
 
     benefits: z.array(z.string()).optional(),
 
-    skillsRequired: z.array(z.string()).optional(),
+    additionalInformation: z.string().min(1, 'Additional information is required'),
 
-    lastApplyDate: z.string({
-      required_error: 'Last apply date is required',
-    }),
+    lastApplyDate: z.string().min(1, 'Last apply date is required'),
 
     status: z.enum(['New', 'Cvs Sent', 'Closed']).optional(),
 
     isDeleted: z.boolean().optional(),
-  })
-  // Conditional validation
-  .superRefine((data, ctx) => {
-    if (data.paymentType === 'Monthly' && data.annualPay === undefined) {
-      ctx.addIssue({
-        path: ['annualPay'],
-        message: 'Annual pay is required for monthly payment type',
-        code: z.ZodIssueCode.custom,
-      });
-    }
-
-    if (data.paymentType === 'Hourly' && data.hourlyRequired === undefined) {
-      ctx.addIssue({
-        path: ['hourlyRequired'],
-        message: 'Hourly rate is required for hourly payment type',
-        code: z.ZodIssueCode.custom,
-      });
-    }
   }),
 });
 
@@ -134,28 +89,49 @@ const createJobValidationSchema = z.object({
 
 const updateJobValidationSchema = z.object({
   body: z.object({
-    title: z.string().optional(),
-    location: z.string().optional(),
+    title: z.string().min(1).optional(),
+    location: z.string().min(1).optional(),
+    area: z.string().min(1).optional(),
+    postalCode: z.string().min(1).optional(),
+    county: z.string().min(1).optional(),
+
+    jobType: z.enum(['Onsite', 'Remote', 'Hybrid']).optional(),
+    workType: z.enum(['Full-Time', 'Part-Time', 'Temporary']).optional(),
+
     lengthOfWork: z.string().optional(),
-    paymentType: z.enum(['Monthly', 'Hourly']).optional(),
+
+    paymentType: z.enum(['Monthly', 'Fortnightly', 'Weekly']).optional(),
+
+    salaryRange: salaryRangeSchema.optional(),
+
+    overtimePayRate: z.number().nonnegative().optional(),
     annualPay: z.number().nonnegative().optional(),
     hourlyRequired: z.number().nonnegative().optional(),
-    startDate: z.string().optional(),
-    startTime: z.string().optional(),
-    finishTime: z.string().optional(),
-    daysOfWork: z.array(z.string()).optional(),
-    salaryRange: salaryRangeSchema.optional(),
-    experience: z.number().optional(),
-    workType: z.enum(['Full-Time', 'Part-Time', 'Temporary']).optional(),
-    workersNeeded: z.number().optional(),
-    description: z.string().optional(),
-    keyResponsibilities: z.array(z.string()).optional(),
-    requirements: z.array(z.string()).optional(),
+
+    startDate: z.string().min(1).optional(),
+    startTime: z.string().min(1).optional(),
+    finishTime: z.string().min(1).optional(),
+
+    daysOfWork: z.array(z.string()).min(1).optional(),
+
+    // workersNeeded: z.number().positive().optional(),
+
+    experience: z.number().nonnegative().optional(),
+
+    description: z.string().min(1).optional(),
+
+    candidateDuties: z.array(z.string()).min(1).optional(),
+
+    documentationCertificates: z.array(z.string()).min(1).optional(),
+
     benefits: z.array(z.string()).optional(),
-    skillsRequired: z.array(z.string()).optional(),
-    lastApplyDate: z.string().optional(),
+
+    additionalInformation: z.string().min(1).optional(),
+
+    lastApplyDate: z.string().min(1).optional(),
+
     status: z.enum(['New', 'Cvs Sent', 'Closed']).optional(),
-    jobType: z.enum(['Onsite', 'Remote', 'Hybrid']).optional(),
+
     isDeleted: z.boolean().optional(),
   }),
 });
@@ -168,9 +144,7 @@ const updateJobValidationSchema = z.object({
 
 const updateJobStatusValidationSchema = z.object({
   body: z.object({
-    status: z.enum(['New', 'Cvs Sent', 'Closed'], {
-      required_error: 'Job status is required',
-    }),
+    status: z.enum(['New', 'Cvs Sent', 'Closed']),
   }),
 });
 

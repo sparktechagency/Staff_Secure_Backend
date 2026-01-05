@@ -21,8 +21,9 @@ const createJob = catchAsync(async (req, res) => {
 });
 
 const getAllJobs = catchAsync(async (req, res) => {
-    
-  const result = await JobService.getAllJobs(req.query);
+  console.log("req user ", req.user)
+  const {candidateProfileId} = req.user;
+  const result = await JobService.getAllJobs(req.query, candidateProfileId);
 
   sendResponse(res, {
     success: true,

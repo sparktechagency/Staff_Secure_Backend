@@ -11,7 +11,11 @@ export interface TUserCreate {
   phone?: string;
   candidateProfileId?: Types.ObjectId,
   mySubscriptionsId?: Types.ObjectId,
+  stipeCustomerId?: string,
   location?: string,
+  area? : string,
+  postalCode?: string,
+  county?: string,
   designation?: string,
   dateOfBirth?: Date,
   yearsOfExperience?: number,

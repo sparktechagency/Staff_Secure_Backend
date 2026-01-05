@@ -8,33 +8,40 @@ export type TSalaryRange = {
 export type TJobType = 'Onsite' | 'Remote' | 'Hybrid';
 export type TJobStatus = 'New' | 'Cvs Sent' | 'Closed';
 export type TWorkType = 'Full-Time' | 'Part-Time' | 'Temporary';
-export type TPaymentType = 'Monthly' | 'Hourly';
+export type TPaymentType = 'Monthly' | 'Fortnightly' | 'Weekly';
 
 export type TJob = {
   employerId: Types.ObjectId; // ref User
   jobReferralCode: string;
   title: string;
   location: string;
+  area: string;
+  postalCode: string;
+  county: string;
+  jobType: TJobType;
+  workType: TWorkType;
   lengthOfWork: string;
   paymentType: TPaymentType;
-  annualPay: number;
+  salaryRange: TSalaryRange;
+  overtimePayRate: number;
+  annualPay?: number;
   hourlyRequired: number;
   startDate: Date;
   startTime: string;
   finishTime: string;
   daysOfWork: [string];
-  jobType: TJobType;
-  salaryRange: TSalaryRange;
-  experience: number;
-  workType: TWorkType;
   workersNeeded: number;
+  experience: number;
   description: string;
-  keyResponsibilities: string[];
-  requirements: string[];
+  candidateDuties: string[];
+  documentationCertificates: string[];
   benefits: string[];
-  skillsRequired: string[];
+  additionalInformation: string;
   lastApplyDate: Date;
   status: TJobStatus;
   isDeleted: boolean;
+  // keyResponsibilities: string[];
+  // requirements: string[];
+  // skillsRequired: string[];
   
 };

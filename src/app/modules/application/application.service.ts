@@ -9,8 +9,13 @@ import Job from '../job/job.model';
 import { generateAiScoreForApplication, generateAiScoresForJob } from './application.utils';
 import { emitNotification } from '../../../socketIo';
 import { getAdminId } from '../../DB/adminStrore';
+import { sendJobApplicationSuccessEmail } from '../../utils/eamilNotifiacation';
+import { User } from '../user/user.model';
+import { CandidateProfile } from '../candidateProfile/candidateProfile.model';
 
 const createApplication = async (payload: IApplication) => {
+
+  console.log("payload from application =>>>> ", payload);
 
   const isExistJob = await Job.findById(payload.jobId);
 
@@ -25,7 +30,10 @@ const createApplication = async (payload: IApplication) => {
     candidateId: payload.candidateId,
     jobId: payload.jobId,
     isDeleted: false,
-  });
+  }).populate('candidateId');
+
+
+  console.log("exist =>>>> ", exist);
 
   if (exist) {
     throw new AppError(httpStatus.BAD_REQUEST, 'You have already applied for this job');
@@ -37,9 +45,26 @@ const createApplication = async (payload: IApplication) => {
     status: 'applied',
   }) as any;
 
+  console.log("application =>>>> ", application);
+
   if(!application) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create application');
   }
+
+  // ✅ Fetch candidate user
+  const candidate = await CandidateProfile.findById(payload.candidateId)
+    .select('email name');
+
+  if (candidate?.email) {
+    sendJobApplicationSuccessEmail({
+      sentTo: candidate.email,
+      candidateName: candidate.name as any,
+      jobTitle: isExistJob.title,
+    }).catch(err =>
+      console.error('Application email failed:', err)
+    );
+  }
+
   // 🔥 fire-and-forget AI (DON’T await)
   generateAiScoresForJob(application.jobId.toString())
     .catch(err => console.error("AI scoring failed:", err));
@@ -425,7 +450,7 @@ const getTopAiSuggestedCvsForJob = async (jobId: string) => {
     .select("status appliedAt aiScore aiReason matchedSkills aiMatchLevel candidateId jobId jobProviderOwnerId adminNotes ")
     .populate({
       path: "candidateId",
-      select: "name email cv designation skills yearsOfExperience bio location availability documentAndCertifications",
+      select: "name email cv designation skills yearsOfExperience bio location area postalCode county availability documentAndCertifications",
     })
     .populate({
       path: "jobId",

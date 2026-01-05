@@ -69,7 +69,9 @@ const updateCandidateProfile = catchAsync(async (req: Request, res: Response) =>
 
   const {userId} = req.user;
 
-  const isExist = await User.IsUserExistById(userId);
+  // const isExist = await User.IsUserExistById(userId);
+
+  const isExist = await User.findById(userId).populate("candidateProfileId").lean();
 
   if (!isExist) {
     throw new AppError(httpStatus.NOT_FOUND, 'User not found');
@@ -85,10 +87,15 @@ const updateCandidateProfile = catchAsync(async (req: Request, res: Response) =>
         req.files as { [fieldName: string]: Express.Multer.File[] },
       );
 
+
       if ( filePaths.image && filePaths.image.length > 0) {
-        req.body.cv = filePaths.image[0];
+        req.body.profileImage = filePaths.image[0];
       }
 
+      
+      if ( filePaths.cv && filePaths.cv.length > 0) {
+        req.body.cv = filePaths.cv[0];
+      }
       // Set documents (multiple files)
       if (filePaths.documents && filePaths.documents.length > 0) {
         req.body.documentAndCertifications = filePaths.documents; // Assign full array of documents

@@ -48,6 +48,10 @@ const userSchema = new Schema<TUser>(
       type: Schema.Types.ObjectId,
       ref: "MySubscription",
     },
+    stipeCustomerId: {
+      type: String,
+      default: "",
+    },
     status: {
       type: String,
       enum: ['active', 'blocked'],

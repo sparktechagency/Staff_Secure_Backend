@@ -29,7 +29,7 @@ export interface OTPVerifyAndCreateUserProps {
 
 const createUserToken = async (payload: TUserCreate) => {
 
-  const { name, email, password, role, companyName, phone } = payload
+  const { name, email, password, role, companyName, phone, location, area, postalCode, county,   designation,   } = payload
 
   // user exist check
   const userExist = await User.isUserExist(email)
@@ -74,6 +74,11 @@ const createUserToken = async (payload: TUserCreate) => {
     role,
     companyName,
     phone,
+    location,
+    designation,
+    area,
+    postalCode,
+    county
   }
 
   // send email
@@ -114,7 +119,7 @@ const otpVerifyAndCreateUser = async ({
     throw new AppError(httpStatus.BAD_REQUEST, 'You are not authorised')
   }
 
-  const { name, email, password, role, companyName, phone } = decodeData
+  const { name, email, password, role, companyName, phone , location, area, postalCode, county, designation } = decodeData
 
   // // Check OTP
   // const isOtpMatch = await otpServices.otpMatch(
@@ -161,6 +166,32 @@ const otpVerifyAndCreateUser = async ({
       ],
       { session }
     )
+
+    if(user && user[0].role === "candidate") {
+
+      
+
+    const candidateProfiles = await CandidateProfile.create(
+        [
+          {
+            userId: user[0]._id,
+            name,
+            email,
+            location,
+            designation,
+            area,
+            postalCode,
+            county 
+          },
+        ],
+        { session }
+      );
+
+      const candidateProfile = candidateProfiles[0];
+      (user as any).candidateProfileId = candidateProfile._id;
+      await User.findByIdAndUpdate(user[0]._id, { candidateProfileId: candidateProfile._id }, { session });
+    }
+
 
 
     // create chat with admin
@@ -262,8 +293,11 @@ const updateUserCandidateProfile = async (
     throw new AppError(httpStatus.BAD_REQUEST, 'User not found');
   }
 
+
   // Destructure payload and prevent email update
-  const { email, ...rest } = payload;
+  const { email, profileImage, ...rest } = payload;
+
+
   let candidateProfile;
 
   if (user.candidateProfileId) {
@@ -294,20 +328,28 @@ const updateUserCandidateProfile = async (
     user.name = rest.name;
   }
 
+    if(profileImage){
+    user.profileImage = profileImage;
+  }
+
+  const isCvExist = user.candidateProfileId.cv ? true : rest.cv ? true : false;
+
     const jwtPayload: {
       userId: string;
       name: string;
       companyName: string;
       email: string;
       role: string;
-      candidateProfileId:  Types.ObjectId | null
+      candidateProfileId:  Types.ObjectId | null;
+      isCvExist?: boolean
     } = {
       userId: user?._id?.toString() as string,
       name: rest.name || user.name || '',
       companyName: user.companyName || '',
       email: user.email,
       role: user?.role,
-      candidateProfileId: user.candidateProfileId || null
+      candidateProfileId: user.candidateProfileId._id || null,
+      isCvExist
     };
   
     const accessToken = createToken({
@@ -321,9 +363,16 @@ const updateUserCandidateProfile = async (
       access_secret: config.jwt_refresh_secret as string,
       expity_time: config.jwt_refresh_expires_in as string,
     });
-  // Save user
-  const result = await user.save();
-  console.log({result});
+
+    await User.findByIdAndUpdate(
+      user._id,
+      {
+        name: rest.name ?? user.name,
+        profileImage: profileImage ?? user.profileImage,
+        candidateProfileId: user.candidateProfileId,
+      },
+      { new: true }
+    );
 
   return {  accessToken, refreshToken, candidateProfile };
 };

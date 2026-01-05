@@ -22,6 +22,18 @@ const candidateProfileSchema = new Schema<ICandidateProfile>(
       type: String,
       default: ""
     },
+    area: {
+      type: String,
+      required: true
+    },
+    postalCode: {
+      type: String,
+      required: true
+    },
+    county: {
+      type: String,
+      required: true
+    },
     designation: {
       type: String,
       default: "",

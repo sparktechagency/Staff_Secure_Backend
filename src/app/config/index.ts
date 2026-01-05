@@ -12,6 +12,7 @@ const aws = {
 const stripe = {
   stripe_api_key: process.env.STRIPE_API_KEY,
   stripe_api_secret: process.env.STRIPE_API_SECRET,
+  stripe_webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
 };
 
 export default {
@@ -40,4 +41,7 @@ export default {
   openai_api_key: process.env.OPENAI_API_KEY,
   aws,
   stripe,
+  logo_url: process.env.LOGO_URL,
+  backend_url: process.env.BACKEND_URL,
+  frontend_url: process.env.FRONTEND_URL,
 };

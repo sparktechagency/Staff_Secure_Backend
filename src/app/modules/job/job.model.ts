@@ -21,25 +21,24 @@ const jobSchema = new Schema<TJob>(
       type: String,
       required: true
     },
+    area: {
+      type: String,
+      required: true
+    },
+    postalCode: {
+      type: String,
+      required: true
+    },
+    county: {
+      type: String,
+      required: true
+    },
+
     jobType: {
       type: String,
       enum: ['Onsite', 'Remote', 'Hybrid'],
       required: true,
     },
-    salaryRange: {
-      min: { 
-        type: Number, 
-        required: true },
-      max: { 
-        type: Number, 
-        required: true },
-    },
-
-    experience: { 
-        type: Number, 
-        required: true 
-    },
-
     workType: {
       type: String,
       enum: ['Full-Time', 'Part-Time', 'Temporary'],
@@ -50,9 +49,24 @@ const jobSchema = new Schema<TJob>(
       required: false,
       default: ""
     },
+
     paymentType: {
       type: String,
-      enum: ['Monthly', "Hourly"]
+      enum: ['Monthly', 'Fortnightly', "Weekly"]
+    },
+    salaryRange: {
+      min: { 
+        type: Number, 
+        required: true 
+      },
+      max: { 
+        type: Number, 
+        required: true 
+      },
+    },
+    overtimePayRate: {
+      type: Number,
+      required: true
     },
     annualPay: {
       type: Number,
@@ -60,8 +74,9 @@ const jobSchema = new Schema<TJob>(
     },
     hourlyRequired: {
       type: Number,
-      default: 0
+      required: true
     },
+    
     startDate: {
       type: Date,
       required: true
@@ -78,9 +93,13 @@ const jobSchema = new Schema<TJob>(
       type: [ String ],
       required: true
     },
-    workersNeeded: {
-      type: Number,
-      required: true
+    // workersNeeded: {
+    //   type: Number,
+    //   required: true
+    // },
+    experience: { 
+        type: Number, 
+        required: true 
     },
 
 
@@ -88,25 +107,21 @@ const jobSchema = new Schema<TJob>(
         type: String, 
         required: true 
     },
-
-    keyResponsibilities: {
+    candidateDuties: {
       type: [String],
       required: true,
     },
-
-    requirements: {
+    documentationCertificates: {
       type: [String],
       required: true,
     },
-
     benefits: {
       type: [String],
       default: [],
     },
-
-    skillsRequired: {
-      type: [String],
-      default: [],
+    additionalInformation: { 
+        type: String, 
+        required: true 
     },
 
     lastApplyDate: { 
@@ -124,7 +139,22 @@ const jobSchema = new Schema<TJob>(
         type: Boolean, default: false 
     },
 
-    
+
+    // keyResponsibilities: {
+    //   type: [String],
+    //   required: true,
+    // },
+
+    // requirements: {
+    //   type: [String],
+    //   required: true,
+    // },
+
+
+    // skillsRequired: {
+    //   type: [String],
+    //   default: [],
+    // },
 
     
   },

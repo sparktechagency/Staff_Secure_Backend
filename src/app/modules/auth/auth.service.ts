@@ -11,6 +11,7 @@ import { User } from '../user/user.model';
 import { OTPVerifyAndCreateUserProps } from '../user/user.service';
 import { TLogin } from './auth.interface';
 import { Types } from 'mongoose';
+import { CandidateProfile } from '../candidateProfile/candidateProfile.model';
 
 // Login
 const login = async (payload: TLogin) => {
@@ -24,6 +25,16 @@ const login = async (payload: TLogin) => {
     throw new AppError(httpStatus.BAD_REQUEST, 'Password does not match');
   }
 
+  let isCvExist = false;
+
+  if(user.candidateProfileId){
+    const candidateProfile = await CandidateProfile.findById(user.candidateProfileId);
+
+    if(candidateProfile?.cv){
+      isCvExist = true;
+    }
+  }
+
   const jwtPayload: {
     userId: string;
     name: string;
@@ -32,6 +43,7 @@ const login = async (payload: TLogin) => {
     email: string;
     phone?: string;
     candidateProfileId?: Types.ObjectId | null;
+    isCvExist?: boolean
   } = {
     userId: user?._id?.toString() as string,
     name: user.name || '',
@@ -39,7 +51,8 @@ const login = async (payload: TLogin) => {
     email: user.email,
     role: user?.role,
     phone: user?.phone,
-    candidateProfileId: user.candidateProfileId || null
+    candidateProfileId: user.candidateProfileId || null,
+    isCvExist
   };
 
   const accessToken = createToken({

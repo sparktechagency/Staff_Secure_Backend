@@ -2,8 +2,11 @@ import Stripe from "stripe";
 import mongoose from "mongoose";
 import AppError from "../../error/AppError";
 import { Payment } from "./payment.model";
+import config from "../../config";
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+console.log("process.env.STRIPE_SECRET_KEY", config.stripe.stripe_api_secret);
+
+export const stripe = new Stripe(config.stripe.stripe_api_secret as string, {
   apiVersion: "2025-09-30.clover",
   typescript: true,
 });
@@ -35,10 +38,10 @@ export const createStripePaymentSession = async (payload: {
     line_items: [
       {
         price_data: {
-          currency: 'eur',
+          currency: 'gbp',
           product_data: {
             name: `${subscriptionType} Subscription`,
-            description: `${subscriptionType} subscription for ${durationInMonths} month(s)`,
+            description: `A month for a 12-month subscription`,
           },
           unit_amount: calculateAmount(finalAmount), // cents
         },
@@ -73,7 +76,7 @@ export const createStripePaymentSession = async (payload: {
     checkoutUrl: session.url,
     paymentId: paymentRecord._id,
     finalAmount,
-    currency: 'EUR',
+    currency: 'GBP',
   };
 };
 

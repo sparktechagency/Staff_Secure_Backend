@@ -60,7 +60,7 @@ const createJob = async (payload: TJob) => {
 //   return { meta, result };
 // };
 
-const getAllJobs = async (query: Record<string, any> = {}) => {
+const getAllJobs = async (query: Record<string, any> = {}, userId: string ) => {
   const baseFilter = {
     isDeleted: false,
   };
@@ -78,7 +78,33 @@ const getAllJobs = async (query: Record<string, any> = {}) => {
     .paginate()
     .fields();
 
-  const result = await jobQuery.modelQuery;
+  const jobs = await jobQuery.modelQuery;
+
+    /* ----------------------------------------
+     STEP 1: Get applied jobs for this user
+  ----------------------------------------- */
+  let appliedJobIds = new Set<string>();
+
+  if (userId) {
+
+    const applications = await Application.find({
+      candidateId: new mongoose.Types.ObjectId(userId), // userId,
+      isDeleted: false,
+    }).select('jobId');
+
+    appliedJobIds = new Set(
+      applications.map(app => app.jobId.toString())
+    );
+
+  }
+
+  /* ----------------------------------------
+     STEP 2: Attach isApplied flag
+  ----------------------------------------- */
+  const result = jobs.map((job: any) => ({
+    ...job.toObject(),
+    isApplied: appliedJobIds.has(job._id.toString()),
+  }));
 
   // 🔥 MANUAL SORT FIX (preserves QueryBuilder)
   const statusPriority = (status: string) => {
@@ -105,6 +131,27 @@ const getAllJobs = async (query: Record<string, any> = {}) => {
   return { meta, result };
 };
 
+
+
+// const getMyJobs = async (userId: string, query: Record<string, any> = {}) => {
+//   const baseFilter = {
+//     employerId: new mongoose.Types.ObjectId(userId),
+//     isDeleted: false,
+//   };
+
+//   const jobQuery = new QueryBuilder(Job.find(baseFilter), query)
+//     .search(["title", "description", "requirements", "skillsRequired"])
+//     .filter()
+//     .sort()
+//     .paginate()
+//     .fields();
+
+//   const result = await jobQuery.modelQuery;
+//   const meta = await jobQuery.countTotal();
+
+//   return { meta, result };
+// };
+
 const getMyJobs = async (userId: string, query: Record<string, any> = {}) => {
   const baseFilter = {
     employerId: new mongoose.Types.ObjectId(userId),
@@ -112,13 +159,90 @@ const getMyJobs = async (userId: string, query: Record<string, any> = {}) => {
   };
 
   const jobQuery = new QueryBuilder(Job.find(baseFilter), query)
-    .search(["title", "description", "requirements", "skillsRequired"])
+    .search(['title', 'description', 'requirements', 'skillsRequired'])
     .filter()
     .sort()
     .paginate()
     .fields();
 
-  const result = await jobQuery.modelQuery;
+  const jobs = await jobQuery.modelQuery;
+  const jobIds = jobs.map((job: any) => job._id);
+
+  // 🔥 CV statistics aggregation (your logic applied)
+  const applicationStats = await Application.aggregate([
+    {
+      $match: {
+        jobId: { $in: jobIds },
+        isDeleted: false,
+      },
+    },
+    {
+      $group: {
+        _id: '$jobId',
+
+        // ✅ total received (forwarded exists)
+        totalReceivedCv: {
+          $sum: {
+            $cond: [{ $ne: ['$forwardedAt', null] }, 1, 0],
+          },
+        },
+
+        // ✅ reviewed (selected or rejected)
+        reviewedCv: {
+          $sum: {
+            $cond: [
+              { $in: ['$status', ['selected', 'rejected']] },
+              1,
+              0,
+            ],
+          },
+        },
+
+        // ✅ new CV (forwarded but not reviewed yet)
+        newCv: {
+          $sum: {
+            $cond: [
+              {
+                $and: [
+                  { $ne: ['$forwardedAt', null] },
+                  { $not: { $in: ['$status', ['selected', 'rejected']] } },
+                ],
+              },
+              1,
+              0,
+            ],
+          },
+        },
+      },
+    },
+  ]);
+
+  // 🧠 Map by jobId
+  const cvStatsMap = new Map(
+    applicationStats.map(stat => [
+      stat._id.toString(),
+      {
+        totalReceivedCv: stat.totalReceivedCv,
+        reviewedCv: stat.reviewedCv,
+        newCv: stat.newCv,
+      },
+    ])
+  );
+
+  // ✅ Attach stats to jobs
+  const result = jobs.map((job: any) => {
+    const stats = cvStatsMap.get(job._id.toString()) || {
+      totalReceivedCv: 0,
+      reviewedCv: 0,
+      newCv: 0,
+    };
+
+    return {
+      ...job.toObject(),
+      ...stats,
+    };
+  });
+
   const meta = await jobQuery.countTotal();
 
   return { meta, result };

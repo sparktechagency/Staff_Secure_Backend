@@ -6,6 +6,7 @@ import config from './app/config';
 import createDefaultAdmin from './app/DB/createDefaultAdmin';
 import { initSocketIO } from './socketIo';
 import { logger } from './app/utils/logger';
+import { startSubscriptionCronJobs } from './app/modules/payment/payment.cron';
 
 // Create a new HTTP server
 const socketServer = createServer();
@@ -43,6 +44,9 @@ async function main() {
     logger.info(
       `\r✅ Mongodb connected successfully in ${Date.now() - dbStartTime}ms`,
     );
+
+    // ✅ START CRON JOBS HERE
+    startSubscriptionCronJobs();
 
     //create a defult admin
     createDefaultAdmin()
