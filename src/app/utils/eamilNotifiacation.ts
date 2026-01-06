@@ -157,7 +157,7 @@ const sendWelcomeEmail = async ({
 
       <p>To get started, please sign in to your dashboard and select the right package for your business to begin posting vacancies.</p>
 
-      <a href="http://your-dashboard-url.com" style="display: inline-block; background-color: ${primaryColor}; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 4px; margin: 16px 0;">Go to Dashboard</a>
+      <a href="https://staffsecure.ai" style="display: inline-block; background-color: ${primaryColor}; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 4px; margin: 16px 0;">Visit Staff Secure</a>
 
       <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 24px 0;" />
 
@@ -197,7 +197,7 @@ const sendWelcomeEmail = async ({
 
       <p>To improve your chances of being selected, we recommend completing your profile and uploading any relevant certifications or documents.</p>
 
-      <a href="http://your-dashboard-url.com" style="display: inline-block; background-color: ${primaryColor}; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 4px; margin: 16px 0;">Go to Dashboard</a>
+      <a href="https://staffsecure.ai" style="display: inline-block; background-color: ${primaryColor}; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 4px; margin: 16px 0;">Visit Staff Secure</a>
 
       <p style="margin-top: 32px;">If you need help at any time, our support team is available via <strong>Live Chat</strong>.</p>
 
