@@ -50,6 +50,7 @@ const getMyChatList = catchAsync(async (req: Request, res: Response) => {
 
   const { userId } = req.user;
 
+
   const result = await ChatService.getMyChatList(userId, req.query);
 
   
@@ -57,6 +58,22 @@ const getMyChatList = catchAsync(async (req: Request, res: Response) => {
     statusCode: 200,
     success: true,
     message: 'Chat retrieved successfully',
+    data: result,
+  });
+});
+
+const getAdminChatList = catchAsync(async (req: Request, res: Response) => {
+
+  const { userId } = req.user;
+
+
+  const result = await ChatService.getAdminChatList(userId, req.query);
+
+  
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Admin chat retrieved successfully',
     data: result,
   });
 });
@@ -99,6 +116,7 @@ const getChatById = async (req: Request, res: Response, next: NextFunction) => {
 export const ChatController = {
   addNewChat,
   getMyChatList,
+  getAdminChatList,
   getChatById,
   leaveUserFromSpecificChatController,
 };

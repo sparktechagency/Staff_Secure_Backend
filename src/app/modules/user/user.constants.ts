@@ -9,7 +9,7 @@ export const gender = ['Male', 'Female', 'Others'] as const;
 export const USER_STATUS = {
   ACTIVE: 'active',
   BLOCKED: 'blocked',
-}as const;
+} as const;
 
 export const Role = Object.values(USER_ROLE);
 

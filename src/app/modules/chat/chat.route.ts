@@ -30,6 +30,14 @@ router.get(
   ChatController.getMyChatList
 );
 
+router.get(
+  '/admin/my-chat-list',
+  auth(
+    USER_ROLE.ADMIN
+  ),
+  ChatController.getAdminChatList
+);
+
 router.patch(
   '/leave-chat/:chatId',
   auth(

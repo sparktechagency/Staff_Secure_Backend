@@ -10,6 +10,7 @@ import { Types } from 'mongoose';
 import { Console } from 'console';
 import { getAdminData, getAdminId } from '../../DB/adminStrore';
 import QueryBuilder from '../../builder/QueryBuilder';
+import { USER_ROLE } from '../user/user.constants';
 // Convert string to ObjectId
 const toObjectId = (id: string): mongoose.Types.ObjectId =>
   new mongoose.Types.ObjectId(id);
@@ -148,6 +149,8 @@ const addNewChat = async (
 // };
 
 const getMyChatList = async (userId: string, query: any) => {
+
+
   // Build the query object to filter the chats
   const filterQuery: any = { users: { $all: [new Types.ObjectId(userId)] } };
 
@@ -187,6 +190,79 @@ const getMyChatList = async (userId: string, query: any) => {
       chat: chatId,
       seen: false,
       sender: { $ne: userId },
+    });
+
+    data.push({
+      chat: chatItem,
+      lastMessage: message?.text  || null,
+      images: message?.images || [],
+      lastMessageSender: message?.sender || null, // 👈 only sender _id
+      unreadMessageCount,
+      lastMessageCreatedAt: (message as any)?.updatedAt || null,
+    });
+  }
+
+  // Sort chats by last message time (descending)
+  data.sort((a, b) => {
+    const dateA = a.lastMessageCreatedAt
+      ? new Date(a.lastMessageCreatedAt).getTime()
+      : 0;
+    const dateB = b.lastMessageCreatedAt
+      ? new Date(b.lastMessageCreatedAt).getTime()
+      : 0;
+    return dateB - dateA;
+  });
+
+  return data;
+};
+
+
+const getAdminChatList = async (adminId: string, query: any) => {
+  const { role, search } = query; 
+  // role = candidate | employer
+
+  if (![USER_ROLE.CANDIDATE, USER_ROLE.EMPLOYER].includes(role)) {
+    throw new Error('Invalid role type for admin chat list');
+  }
+
+  const chats = await Chat.find({
+    users: { $all: [new Types.ObjectId(adminId)] },
+  }).populate({
+    path: 'users',
+    select: 'name profileImage email role _id',
+    match: {
+      _id: { $ne: adminId },
+      role: role, // 🔥 filter by candidate / employer
+    },
+  });
+
+  if (!chats || chats.length === 0) return [];
+
+  const data: any[] = [];
+
+  for (const chatItem of chats) {
+    if (!chatItem.users.length) continue;
+
+    const chatId = chatItem._id;
+
+    // optional search filter for chat user name
+    if (query.search) {
+      const matched = chatItem.users.filter((user) =>
+        (user as any).name?.toLowerCase().includes(query.search.toLowerCase())
+      );
+      if (!matched.length) continue;
+    }
+
+    // Find the latest message (no populate)
+    const message = await Message.findOne({ chat: chatId })
+      .sort({ updatedAt: -1 })
+      .select('text images sender updatedAt');
+
+    // Count unread messages for this user
+    const unreadMessageCount = await Message.countDocuments({
+      chat: chatId,
+      seen: false,
+      sender: { $ne: adminId },
     });
 
     data.push({
@@ -276,6 +352,7 @@ export const ChatService = {
   createChatWithAdmin,
   addNewChat,
   getMyChatList,
+  getAdminChatList,
   // getConnectionUsersOfSpecificUser,
   // getOnlineConnectionUsersOfSpecificUser,
   // getUserChats,

@@ -169,7 +169,7 @@ export const initSocketIO = async (server: HttpServer): Promise<void> => {
 
             // ✅ Format time in timezone
             const time = moment()
-              .tz('Asia/Dhaka')
+              .tz(config.timezone  || "UTC")
               .format('YYYY-MM-DDTHH:mm:ss.SSS')
 
             // ✅ Create message first (important!)

@@ -1,3 +1,4 @@
+import { time } from 'console';
 import dotenv from 'dotenv';
 import path from 'path';
 dotenv.config({ path: path.join((process.cwd(), '.env')) });
@@ -16,6 +17,7 @@ const stripe = {
 };
 
 export default {
+  timezone: process.env.APP_TIMEZONE,
   NODE_ENV: process.env.NODE_ENV,
   port: process.env.PORT,
   ip: process.env.IP,
